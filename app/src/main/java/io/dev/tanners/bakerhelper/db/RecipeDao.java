@@ -1,5 +1,6 @@
 package io.dev.tanners.bakerhelper.db;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
@@ -16,7 +17,7 @@ import io.dev.tanners.bakerhelper.model.Recipe;
 public interface RecipeDao {
     @Transaction
     @Query(DBConfig.GET_ALL_RECIPES_QUERY)
-    List<Recipe> loadAllRecipes();
+    LiveData<List<Recipe>> loadAllRecipes();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertRecipe(Recipe mRecipe);

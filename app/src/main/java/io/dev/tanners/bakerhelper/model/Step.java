@@ -3,10 +3,13 @@ package io.dev.tanners.bakerhelper.model;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
-public class Step {
+public class Step implements Parcelable {
     @PrimaryKey(autoGenerate = true)
     private int id;
     private int stepId;
@@ -37,6 +40,28 @@ public class Step {
         this.videoUrl = videoUrl;
         this.thumbnailUrl = thumbnailUrl;
     }
+
+    protected Step(Parcel in) {
+        id = in.readInt();
+        stepId = in.readInt();
+        shortDescription = in.readString();
+        description = in.readString();
+        videoUrl = in.readString();
+        thumbnailUrl = in.readString();
+    }
+
+    public static final Creator<Step> CREATOR = new Creator<Step>() {
+        @Override
+        public Step createFromParcel(Parcel in) {
+            return new Step(in);
+        }
+
+        @Override
+        public Step[] newArray(int size) {
+            return new Step[size];
+        }
+    };
+
 
     @JsonProperty("id")
     public int getStepId() {
@@ -84,5 +109,20 @@ public class Step {
     }
     public void setThumbnailUrl(String thumbnailUrl) {
         this.thumbnailUrl = thumbnailUrl;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeInt(stepId);
+        dest.writeString(shortDescription);
+        dest.writeString(description);
+        dest.writeString(videoUrl);
+        dest.writeString(thumbnailUrl);
     }
 }
