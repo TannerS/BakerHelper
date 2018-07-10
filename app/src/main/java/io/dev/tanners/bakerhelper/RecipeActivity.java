@@ -5,13 +5,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import io.dev.tanners.bakerhelper.model.Ingredient;
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.model.Step;
+import io.dev.tanners.bakerhelper.recipe.IngredientAdapter;
 import io.dev.tanners.bakerhelper.recipe.StepWrapper;
 import io.dev.tanners.bakerhelper.recipe.StepsExpandableAdapter;
 
@@ -23,35 +25,51 @@ public class RecipeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe);
+        setUpViewModel();
         getData();
-        setUpExpandableList();
     }
 
-    private void setUpExpandableList()
+    private void setUpExpandableStepList(List<StepWrapper> mSteps)
     {
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recipe_details_list);
+        RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.recipe_steps);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        //instantiate your adapter with the list of genres
-        StepsExpandableAdapter mAdapter = new StepsExpandableAdapter(this, mRecipeViewModel.getmStep());
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setAdapter(mAdapter);
+        StepsExpandableAdapter mAdapter = new StepsExpandableAdapter(this, mSteps);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setAdapter(mAdapter);
+    }
+
+    private void setUpIngredientList(List<Ingredient> mIngredients)
+    {
+        RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.recipe_ingredients);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        IngredientAdapter mAdapter = new IngredientAdapter(this, mIngredients);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setAdapter(mAdapter);
+    }
+
+
+    private void setUpViewModel()
+    {
+        mRecipeViewModel = ViewModelProviders.of(this).get(RecipeViewModel.class);
     }
 
     private List<StepWrapper> setUpExpandableListData(List<Step> mSteps)
     {
         List<StepWrapper> mStepsExtra = new ArrayList<StepWrapper>();
+        int mStepCounter = 0;
 
         for(final Step mStep : mSteps)
         {
             mStepsExtra.add(
                     new StepWrapper(
-                        mStep.getShortDescription(),
+                        "Step " + mStepCounter + ": " + mStep.getShortDescription(),
                         new ArrayList<Step>() {{
                             add(mStep);
                         }}
                     )
             );
 
+            mStepCounter++;
         }
 
         return mStepsExtra;
@@ -59,10 +77,25 @@ public class RecipeActivity extends AppCompatActivity {
 
     private void getData()
     {
-        mRecipeViewModel = ViewModelProviders.of(this).get(RecipeViewModel.class);
-        Recipe mRecipe = getIntent().getParcelableExtra(RECIPE_DATA);
-        mRecipeViewModel.setmIngredient(mRecipe.getIngredients());
-        List<StepWrapper> mStepsExtra = setUpExpandableListData(mRecipe.getSteps());
-        mRecipeViewModel.setmStep(mStepsExtra);
+        if(getIntent() != null && getIntent().hasExtra(RECIPE_DATA))
+        {
+            Recipe mRecipe = getIntent().getParcelableExtra(RECIPE_DATA);
+
+            if(mRecipeViewModel.getmStep() == null) {
+                List<StepWrapper> mStepsExtra = setUpExpandableListData(mRecipe.getSteps());
+                mRecipeViewModel.setmStep(mStepsExtra);
+            }
+
+            if(mRecipeViewModel.getmIngredient() == null)
+            {
+                mRecipeViewModel.setmIngredient(mRecipe.getIngredients());
+            }
+
+            setUpExpandableStepList(mRecipeViewModel.getmStep());
+
+            setUpIngredientList(mRecipeViewModel.getmIngredient());
+        }
     }
+
+
 }

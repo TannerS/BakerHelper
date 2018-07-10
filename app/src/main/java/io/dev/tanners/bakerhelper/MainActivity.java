@@ -1,12 +1,11 @@
 package io.dev.tanners.bakerhelper;
 
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -35,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private RecipeAdapter mAdapter;
     private GridLayoutManager mGridLayoutManager;
     private RecyclerView mRecyclerView;
+    private MainViewModel mMainViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +49,11 @@ public class MainActivity extends AppCompatActivity {
 
         loadResources();
         setUpRecyclerCompact();
+
+
         setupViewModel();
+        setUpAdapter();
+        // todo save and restore adapter pos
     }
 
     private void initDb() throws IOException {
@@ -110,18 +114,18 @@ public class MainActivity extends AppCompatActivity {
     private void setupViewModel()
     {
         // load view model
-        MainViewModel mMainViewModel= ViewModelProviders.of(this).get(MainViewModel.class);
-        // set observer that will update adapter if changes
-        mMainViewModel.getmRecipes().observe(this, new Observer<List<Recipe>>() {
+        mMainViewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+    }
 
-            @Override
-            public void onChanged(@Nullable List<Recipe> mRecipes) {
-                // update adapter
-                if(mAdapter != null) {
-                    mAdapter.updateAdapter(mRecipes);
-                }
-            }
-        });
+    private void setUpAdapter()
+    {
+        if(mMainViewModel.getmRecipes() == null) {
+            new RecipeAsyncTask(this).execute();
+        }
+        else
+        {
+            mAdapter.updateAdapter(mMainViewModel.getmRecipes());
+        }
     }
 
     private void setUpRecyclerCompact()
@@ -139,7 +143,6 @@ public class MainActivity extends AppCompatActivity {
     private void loadResources()
     {
         mRecyclerView = findViewById(R.id.main_recipe_list);
-
     }
 
     private void setUpList()
@@ -180,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
 
             Recipe mRecipe = mRecipes.get(position);
             mHolder.mName.setText(mRecipe.getName());
-
+            // for this example, all images are null
             if(mRecipe.getImage() != null || mRecipe.getImage().length() > 0) {
                 ImageDisplay.loadImage(
                         ((Context) MainActivity.this),
@@ -228,6 +231,37 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra(RecipeActivity.RECIPE_DATA, mRecipe);
                 startActivity(intent);
             }
+        }
+    }
+
+    private class RecipeAsyncTask extends AsyncTask<Void, Void, List<Recipe>> {
+        private Context mContext;
+        private RecipeDatabase mRecipeDatabase;
+
+        public RecipeAsyncTask(Context mContext) {
+            this.mContext = mContext;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            mRecipeDatabase = RecipeDatabase.getInstance(mContext);
+        }
+
+        @Override
+        protected List<Recipe> doInBackground(Void... voids) {
+            Log.i("ADAPTER", "onBackground");
+
+            return mRecipeDatabase.getRecipeDao().loadAllRecipes();
+        }
+
+        @Override
+        protected void onPostExecute(List<Recipe> mRecipe) {
+            super.onPostExecute(mRecipe);
+            mMainViewModel.setmRecipes(mRecipe);
+            Log.i("ADAPTER", "onPost");
+            mAdapter.updateAdapter(mRecipe);
         }
     }
 

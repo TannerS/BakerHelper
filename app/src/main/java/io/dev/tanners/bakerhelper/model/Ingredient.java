@@ -10,7 +10,7 @@ import android.os.Parcelable;
 public class Ingredient implements Parcelable {
     @PrimaryKey(autoGenerate = true)
     private int id;
-    private int quantity;
+    private String quantity;
     private String measure;
     private String ingredient;
 
@@ -20,13 +20,13 @@ public class Ingredient implements Parcelable {
     }
 
     @Ignore
-    public Ingredient(int quantity, String measure, String ingredient) {
+    public Ingredient(String quantity, String measure, String ingredient) {
         this.quantity = quantity;
         this.measure = measure;
         this.ingredient = ingredient;
     }
 
-    public Ingredient(int id, int quantity, String measure, String ingredient) {
+    public Ingredient(int id, String quantity, String measure, String ingredient) {
         this.id = id;
         this.quantity = quantity;
         this.measure = measure;
@@ -35,7 +35,7 @@ public class Ingredient implements Parcelable {
 
     protected Ingredient(Parcel in) {
         id = in.readInt();
-        quantity = in.readInt();
+        quantity = in.readString();
         measure = in.readString();
         ingredient = in.readString();
     }
@@ -43,7 +43,7 @@ public class Ingredient implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(id);
-        dest.writeInt(quantity);
+        dest.writeString(quantity);
         dest.writeString(measure);
         dest.writeString(ingredient);
     }
@@ -73,13 +73,21 @@ public class Ingredient implements Parcelable {
         this.id = id;
     }
 
-    public int getQuantity() {
+    public String getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(int quantity) {
+    public void setQuantity(String quantity) {
         this.quantity = quantity;
     }
+
+    //    public float getQuantity() {
+//        return quantity;
+//    }
+//
+//    public void setQuantity(float quantity) {
+//        this.quantity = quantity;
+//    }
 
     public String getMeasure() {
         return measure;

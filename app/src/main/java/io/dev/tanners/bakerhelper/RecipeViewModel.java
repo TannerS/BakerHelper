@@ -17,9 +17,12 @@ public class RecipeViewModel extends AndroidViewModel {
 //    private LiveData<List<Step>> mStep;
     private List<StepWrapper> mStep;
     private List<Ingredient> mIngredient;
+    // this is an array but I will convert it to a string for UI
+//    private String mIngredients;
 
     public RecipeViewModel(@NonNull Application application) {
         super(application);
+        mStep = null;
     }
 
     public List<StepWrapper> getmStep() {

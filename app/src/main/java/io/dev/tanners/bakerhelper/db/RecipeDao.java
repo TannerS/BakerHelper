@@ -17,16 +17,17 @@ import io.dev.tanners.bakerhelper.model.Recipe;
 public interface RecipeDao {
     @Transaction
     @Query(DBConfig.GET_ALL_RECIPES_QUERY)
-    LiveData<List<Recipe>> loadAllRecipes();
+//    LiveData<List<Recipe>> loadAllRecipes();
+    List<Recipe> loadAllRecipes();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertRecipe(Recipe mRecipe);
 
-    @Update(onConflict = OnConflictStrategy.REPLACE)
-    void updateRecipe(Recipe mRecipe);
-
-    @Delete
-    void deleteRecipe(Recipe mRecipe);
+//    @Update(onConflict = OnConflictStrategy.REPLACE)
+//    void updateRecipe(Recipe mRecipe);
+//
+//    @Delete
+//    void deleteRecipe(Recipe mRecipe);
 
     @Query(DBConfig.GET_RECIPE_BY_ID_QUERY)
     Recipe getRecipe(int id);
