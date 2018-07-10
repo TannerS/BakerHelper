@@ -49,38 +49,6 @@ public class Recipe implements Parcelable {
         this.servings = servings;
         this.image = image;
     }
-//
-//    public Recipe(Parcel in) {
-//        id = in.readInt();
-//        name = in.readString();
-//        servings = in.readInt();
-//        image = in.readString();
-//
-//        in.readTypedList(steps, Step.CREATOR);
-//        in.readTypedList(ingredients, Ingredient.CREATOR);
-//    }
-
-//    @Override
-//    public void writeToParcel(Parcel dest, int flags) {
-//        dest.writeInt(id);
-//        dest.writeString(name);
-//        dest.writeInt(servings);
-//        dest.writeString(image);
-//        dest.writeTypedList(steps);
-//        dest.writeTypedList(ingredients);
-//    }
-
-//    public static final Creator<Recipe> CREATOR = new Creator<Recipe>() {
-//        @Override
-//        public Recipe createFromParcel(Parcel in) {
-//            return new Recipe(in);
-//        }
-//
-//        @Override
-//        public Recipe[] newArray(int size) {
-//            return new Recipe[size];
-//        }
-//    };
 
     public int getId() {
         return id;

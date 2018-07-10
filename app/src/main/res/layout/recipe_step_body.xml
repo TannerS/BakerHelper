@@ -2,18 +2,74 @@
 <android.support.constraint.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="5dp">
+    android:padding="2dp">
 
     <TextView
         android:id="@+id/recipe_step_desc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        android:layout_marginStart="24dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/recipe_step_video_container"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/recipe_step_thumbnail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        android:layout_marginStart="4dp"
+        android:scaleType="fitXY"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/recipe_step_desc" />
+
+    <!--TODO fix layout for landscape, video player too small-->
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/recipe_step_video_container"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginStart="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/recipe_step_thumbnail"
+        android:background="#000000">
+
+        <!--https://stackoverflow.com/questions/17587476/videoview-flickering-issue-->
+        <SurfaceView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <!--well surface view fixes a flickering bug,-->
+        <!--adding a different resize_mode breaks the fix-->
+        <!--so it is left as fit so controls are longer then video-->
+        <com.google.android.exoplayer2.ui.SimpleExoPlayerView
+            android:id="@+id/recipe_step_video"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+
+
+            app:resize_mode="fit">
+<!---->
+
+        <!--<com.google.android.exoplayer2.ui.PlaybackControlView-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:layout_width="match_parent"-->
+            <!--app:resize_mode="fit"-->
+            <!--/>-->
+
+        </com.google.android.exoplayer2.ui.SimpleExoPlayerView>
+
+
+    </FrameLayout>
+
+
 
 </android.support.constraint.ConstraintLayout>

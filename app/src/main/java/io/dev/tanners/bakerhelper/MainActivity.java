@@ -1,11 +1,13 @@
 package io.dev.tanners.bakerhelper;
 
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -52,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         setupViewModel();
-        setUpAdapter();
+//        setUpAdapter();
         // todo save and restore adapter pos
     }
 
@@ -111,22 +113,22 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void setupViewModel()
-    {
-        // load view model
-        mMainViewModel = ViewModelProviders.of(this).get(MainViewModel.class);
-    }
+//    private void setupViewModel()
+//    {
+//        // load view model
+//        mMainViewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+//    }
 
-    private void setUpAdapter()
-    {
-        if(mMainViewModel.getmRecipes() == null) {
-            new RecipeAsyncTask(this).execute();
-        }
-        else
-        {
-            mAdapter.updateAdapter(mMainViewModel.getmRecipes());
-        }
-    }
+//    private void setUpAdapter()
+//    {
+//        if(mMainViewModel.getmRecipes() == null) {
+//            new RecipeAsyncTask(this).execute();
+//        }
+//        else
+//        {
+//            mAdapter.updateAdapter(mMainViewModel.getmRecipes());
+//        }
+//    }
 
     private void setUpRecyclerCompact()
     {
@@ -159,10 +161,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setupViewModel()
+    {
+        // load view model
+        MainViewModel mMainViewModel= ViewModelProviders.of(this).get(MainViewModel.class);
+        // set observer that will update adapter if changes
+        mMainViewModel.getmRecipes().observe(this, new Observer<List<Recipe>>() {
+
+            @Override
+            public void onChanged(@Nullable List<Recipe> mRecipes) {
+                // update adapter
+                if(mAdapter != null) {
+                    Log.i("ADAPTER", "CHANGE");
+                    mAdapter.updateAdapter(mRecipes);
+                }
+            }
+        });
+    }
+
     private class RecipeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     {
         private List<Recipe> mRecipes;
-//        private Recipe mRecipe;
 
         public RecipeAdapter()
         {
@@ -225,7 +244,6 @@ public class MainActivity extends AppCompatActivity {
                 Recipe mRecipe = mRecipes.get(getAdapterPosition());
 
                 Gson gson = new Gson();
-                Log.i("RECIPE!!",  gson.toJson(mRecipe));
 
                 Intent intent = new Intent(MainActivity.this, RecipeActivity.class);
                 intent.putExtra(RecipeActivity.RECIPE_DATA, mRecipe);
@@ -234,35 +252,36 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class RecipeAsyncTask extends AsyncTask<Void, Void, List<Recipe>> {
-        private Context mContext;
-        private RecipeDatabase mRecipeDatabase;
 
-        public RecipeAsyncTask(Context mContext) {
-            this.mContext = mContext;
-        }
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-            mRecipeDatabase = RecipeDatabase.getInstance(mContext);
-        }
-
-        @Override
-        protected List<Recipe> doInBackground(Void... voids) {
-            Log.i("ADAPTER", "onBackground");
-
-            return mRecipeDatabase.getRecipeDao().loadAllRecipes();
-        }
-
-        @Override
-        protected void onPostExecute(List<Recipe> mRecipe) {
-            super.onPostExecute(mRecipe);
-            mMainViewModel.setmRecipes(mRecipe);
-            Log.i("ADAPTER", "onPost");
-            mAdapter.updateAdapter(mRecipe);
-        }
-    }
+//    private class RecipeAsyncTask extends AsyncTask<Void, Void, List<Recipe>> {
+//        private Context mContext;
+//        private RecipeDatabase mRecipeDatabase;
+//
+//        public RecipeAsyncTask(Context mContext) {
+//            this.mContext = mContext;
+//        }
+//
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//
+//            mRecipeDatabase = RecipeDatabase.getInstance(mContext);
+//        }
+//
+//        @Override
+//        protected List<Recipe> doInBackground(Void... voids) {
+//            Log.i("ADAPTER", "onBackground");
+//
+//            return mRecipeDatabase.getRecipeDao().loadAllRecipes();
+//        }
+//
+//        @Override
+//        protected void onPostExecute(List<Recipe> mRecipe) {
+//            super.onPostExecute(mRecipe);
+//            mMainViewModel.setmRecipes(mRecipe);
+//            mAdapter.updateAdapter(mRecipe);
+//        }
+//    }
 
 }

@@ -19,15 +19,14 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-       >
+        android:layout_height="wrap_content" >
 
         <ImageView
             android:id="@+id/list_item_arrow"
             android:layout_width="25dp"
             android:layout_height="25dp"
             android:layout_gravity="center"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:src="@drawable/ic_arrow_down"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -38,7 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:gravity="start"
             android:textAlignment="viewStart"
             app:layout_constraintBottom_toBottomOf="parent"
