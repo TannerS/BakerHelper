@@ -2,7 +2,6 @@ package io.dev.tanners.bakerhelper;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -19,7 +18,7 @@ import java.io.IOException;
 import java.util.List;
 import io.dev.tanners.bakerhelper.aac.MainViewModel;
 import io.dev.tanners.bakerhelper.aac.MainViewModelFactory;
-import io.dev.tanners.bakerhelper.aac.RecipeRepository;
+import io.dev.tanners.bakerhelper.network.RecipeRepository;
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
 import io.dev.tanners.bakerhelper.util.ImageDisplay;
