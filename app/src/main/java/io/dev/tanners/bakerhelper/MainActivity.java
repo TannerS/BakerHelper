@@ -17,7 +17,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import java.io.IOException;
 import java.util.List;
-
 import io.dev.tanners.bakerhelper.aac.MainViewModel;
 import io.dev.tanners.bakerhelper.aac.MainViewModelFactory;
 import io.dev.tanners.bakerhelper.aac.RecipeRepository;

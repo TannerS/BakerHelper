@@ -1,6 +1,7 @@
 package io.dev.tanners.bakerhelper;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -34,6 +35,7 @@ public class RecipeFragment extends Fragment {
     private View view;
     // Define a new interface OnImageClickListener that triggers a callback in the host activity
     private FragmentData mCallback;
+    private Context mContext;
 
     public RecipeFragment() {
         // Required empty public constructor
@@ -78,6 +80,9 @@ public class RecipeFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
+        mContext = context;
+
         try {
             mCallback = (FragmentData) context;
         } catch (ClassCastException e) {
@@ -124,7 +129,8 @@ public class RecipeFragment extends Fragment {
     private void setUpStepList(List<Step> mSteps)
     {
         mStepRecyclerView = (RecyclerView) view.findViewById(R.id.recipe_steps);
-        mStepRecyclerLayoutManager = new LinearLayoutManager(getContext());
+        mStepRecyclerLayoutManager = new LinearLayoutManager(mContext);
+        mStepRecyclerLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mStepAdapter = new StepAdapter(mSteps);
         mStepRecyclerView.setLayoutManager(mStepRecyclerLayoutManager);
         mStepRecyclerView.setAdapter(mStepAdapter);
@@ -133,7 +139,8 @@ public class RecipeFragment extends Fragment {
     private void setUpIngredientList(List<Ingredient> mIngredients)
     {
         mIngredientRecyclerView = (RecyclerView) view.findViewById(R.id.recipe_ingredients);
-        mIngredientRecyclerLayoutManager = new LinearLayoutManager(getContext());
+        mIngredientRecyclerLayoutManager = new LinearLayoutManager(mContext);
+        mIngredientRecyclerLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         mIngredientAdapter = new IngredientAdapter(mIngredients);
         mIngredientRecyclerView.setLayoutManager(mIngredientRecyclerLayoutManager);
         mIngredientRecyclerView.setAdapter(mIngredientAdapter);
@@ -143,7 +150,6 @@ public class RecipeFragment extends Fragment {
 
         public IngredientAdapter(List<Ingredient> mIngredients) {
             this.mBase = mIngredients;
-            Log.i("ADAPTER", String.valueOf(mBase.size()));
         }
 
         @NonNull
@@ -219,12 +225,21 @@ public class RecipeFragment extends Fragment {
             public StepViewHolder(View itemView) {
                 super(itemView);
 
+                // due to wierd bug, the textview and view need to have the onclick set
+                itemView.setOnClickListener(this);
                 mShortDescription = itemView.findViewById(R.id.recipe_step_short_desc);
+                mShortDescription.setOnClickListener(this);
             }
 
             @Override
             public void onClick(View v) {
+                Step mStep = (Step) mBase.get(getAdapterPosition());
 
+                Intent intent = new Intent(mContext, StepActivity.class);
+
+                intent.putExtra(StepActivity.STEP_DATA, mStep);
+
+                startActivity(intent);
             }
         }
     }
