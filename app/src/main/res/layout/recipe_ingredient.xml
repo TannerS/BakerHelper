@@ -9,7 +9,6 @@
         android:layout_height="wrap_content"
         android:id="@+id/recipe_ingredient_text"
         android:textSize="@dimen/_12sdp"
-        android:paddingBottom="5dp"
-        />
+        android:paddingBottom="5dp" />
 
 </android.support.constraint.ConstraintLayout>

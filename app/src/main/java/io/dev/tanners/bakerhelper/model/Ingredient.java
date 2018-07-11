@@ -1,44 +1,21 @@
 package io.dev.tanners.bakerhelper.model;
 
-import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.Ignore;
-import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-@Entity
-public class Ingredient implements Parcelable {
-    @PrimaryKey(autoGenerate = true)
-    private int id;
+public class Ingredient implements Parcelable{
     private String quantity;
     private String measure;
     private String ingredient;
 
-    @Ignore
     public Ingredient() {
         // needed for parser
     }
 
-    @Ignore
     public Ingredient(String quantity, String measure, String ingredient) {
         this.quantity = quantity;
         this.measure = measure;
         this.ingredient = ingredient;
-    }
-
-    public Ingredient(int id, String quantity, String measure, String ingredient) {
-        this.id = id;
-        this.quantity = quantity;
-        this.measure = measure;
-        this.ingredient = ingredient;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getQuantity() {
@@ -75,6 +52,7 @@ public class Ingredient implements Parcelable {
     public int describeContents() {
         return 0;
     }
+
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {

@@ -54,22 +54,10 @@
             android:id="@+id/recipe_step_video"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-
-
             app:resize_mode="fit">
-<!---->
-
-        <!--<com.google.android.exoplayer2.ui.PlaybackControlView-->
-            <!--android:layout_height="match_parent"-->
-            <!--android:layout_width="match_parent"-->
-            <!--app:resize_mode="fit"-->
-            <!--/>-->
 
         </com.google.android.exoplayer2.ui.SimpleExoPlayerView>
 
-
     </FrameLayout>
-
-
 
 </android.support.constraint.ConstraintLayout>

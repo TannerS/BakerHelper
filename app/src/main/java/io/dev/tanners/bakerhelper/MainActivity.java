@@ -4,35 +4,28 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import io.dev.tanners.bakerhelper.db.RecipeDatabase;
-import io.dev.tanners.bakerhelper.db.RecipeExecutor;
-import io.dev.tanners.bakerhelper.db.config.DBConfig;
+
+import io.dev.tanners.bakerhelper.aac.MainViewModel;
+import io.dev.tanners.bakerhelper.aac.MainViewModelFactory;
+import io.dev.tanners.bakerhelper.aac.RecipeRepository;
 import io.dev.tanners.bakerhelper.model.Recipe;
+import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
 import io.dev.tanners.bakerhelper.util.ImageDisplay;
 
-public class MainActivity extends AppCompatActivity {
-    // reference to database object
-    private RecipeDatabase mDb;
+public class MainActivity extends AppCompatActivity{
     private RecipeAdapter mAdapter;
     private GridLayoutManager mGridLayoutManager;
     private RecyclerView mRecyclerView;
@@ -42,113 +35,45 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // load database and data (if data is needed)
+        setupViewModel();
+        setUpAdapter();
+        getData();
+    }
+
+    private void setupViewModel() {
+        // load view model
         try {
-            initDb();
+            mMainViewModel = ViewModelProviders.of(
+                        this,
+                    new MainViewModelFactory(
+                            getApplication(),
+                            new RecipeRepository(this)
+                    )).get(MainViewModel.class);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-
-        loadResources();
-        setUpRecyclerCompact();
-
-
-        setupViewModel();
-//        setUpAdapter();
-        // todo save and restore adapter pos
-    }
-
-    private void initDb() throws IOException {
-        // init db
-        mDb = RecipeDatabase.getInstance(getApplicationContext());
-        // load db objects if needed
-        loadDatabase();
-    }
-
-    private void loadDatabase() throws IOException {
-        // check if data base has been created before in another app instance
-        if(!getDatabasePath(DBConfig.DATABASE_NAME).exists())
-        {
-            Log.i("DATABASE", "DATABASE NOT CREATED ON START");
-            // database does not exist, load in all data for one time only
-            insertMultiple(parseJsonData());
-            for(Recipe test : parseJsonData()) {
-                Gson gson = new Gson();
-                Log.i("RECIPE", gson.toJson(test));
-            }
-        }
-        else
-        {
-            Log.i("DATABASE", "DATABASE CREATED ON START");
-            // database does exist, do nothing
+            return;
         }
     }
 
-    private List<Recipe> parseJsonData() throws IOException {
-        // mapper object
-        ObjectMapper mapper = new ObjectMapper();
-        // name of asset file to read recipe data from
-        final String BAKING_DATA = "baking.json";
-        // create object from file and return
-        return Arrays.asList(
-                mapper.readValue(
-                        getAssets().open(BAKING_DATA),
-                        // https://stackoverflow.com/questions/6349421/how-to-use-jackson-to-deserialise-an-array-of-objects
-                        Recipe[].class
-                )
-        );
-    }
-
-    private void insertMultiple(final List<Recipe> mRecipes) {
-        // get executor to be able to run insert on separate thread
-        RecipeExecutor.getInstance().mDiskIO().execute(new Runnable() {
+    private void getData()
+    {
+        mMainViewModel.getmRecipes().observe(this, new Observer<List<Recipe>>() {
             @Override
-            public void run() {
-                // loop all recipes
-                for (Recipe mRecipe : mRecipes) {
-                    // insert recipe data
-                    mDb.getRecipeDao().insertRecipe(mRecipe);
+            public void onChanged(@Nullable List<Recipe> mRecipes) {
+                // update adapter
+                if(mAdapter != null) {
+                    mAdapter.updateAdapter(mRecipes);
                 }
             }
         });
     }
 
-//    private void setupViewModel()
-//    {
-//        // load view model
-//        mMainViewModel = ViewModelProviders.of(this).get(MainViewModel.class);
-//    }
-
-//    private void setUpAdapter()
-//    {
-//        if(mMainViewModel.getmRecipes() == null) {
-//            new RecipeAsyncTask(this).execute();
-//        }
-//        else
-//        {
-//            mAdapter.updateAdapter(mMainViewModel.getmRecipes());
-//        }
-//    }
-
-    private void setUpRecyclerCompact()
+    private void setUpAdapter()
     {
         mGridLayoutManager = new GridLayoutManager(this, 1);
-        setUpList();
-    }
 
-    private void setUpRecyclerExpanded()
-    {
-        mGridLayoutManager = new GridLayoutManager(this, 3);
-        setUpList();
-    }
-
-    private void loadResources()
-    {
         mRecyclerView = findViewById(R.id.main_recipe_list);
-    }
 
-    private void setUpList()
-    {
         if(mGridLayoutManager != null) {
             // smooth scrolling
             mGridLayoutManager.setSmoothScrollbarEnabled(true);
@@ -161,33 +86,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setupViewModel()
+    protected class RecipeAdapter extends BaseBakerAdapter<Recipe>
     {
-        // load view model
-        MainViewModel mMainViewModel= ViewModelProviders.of(this).get(MainViewModel.class);
-        // set observer that will update adapter if changes
-        mMainViewModel.getmRecipes().observe(this, new Observer<List<Recipe>>() {
-
-            @Override
-            public void onChanged(@Nullable List<Recipe> mRecipes) {
-                // update adapter
-                if(mAdapter != null) {
-                    Log.i("ADAPTER", "CHANGE");
-                    mAdapter.updateAdapter(mRecipes);
-                }
-            }
-        });
-    }
-
-    private class RecipeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
-    {
-        private List<Recipe> mRecipes;
-
-        public RecipeAdapter()
-        {
-            mRecipes = new ArrayList<>();
-        }
-
         @NonNull
         @Override
         public RecipeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -199,13 +99,12 @@ public class MainActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
             RecipeViewHolder mHolder = (RecipeViewHolder) holder;
 
-
-            Recipe mRecipe = mRecipes.get(position);
+            Recipe mRecipe = (Recipe) mBase.get(position);
             mHolder.mName.setText(mRecipe.getName());
             // for this example, all images are null
             if(mRecipe.getImage() != null || mRecipe.getImage().length() > 0) {
                 ImageDisplay.loadImage(
-                        ((Context) MainActivity.this),
+                        (MainActivity.this),
                         // no image url in actually data
                         // just here if ever updated
                         mRecipe.getImage(),
@@ -215,21 +114,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        @Override
-        public int getItemCount() {
-            return this.mRecipes == null ? 0 : mRecipes.size();
-        }
-
-        public void updateAdapter(List<Recipe> mRecipes)
-        {
-            this.mRecipes = mRecipes;
-            notifyDataSetChanged();
-        }
-
         public class RecipeViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
             public TextView mName;
             public ImageView mThumbnail;
-
 
             public RecipeViewHolder(View view) {
                 super(view);
@@ -241,47 +128,14 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                Recipe mRecipe = mRecipes.get(getAdapterPosition());
-
-                Gson gson = new Gson();
+                Recipe mRecipe = (Recipe) mBase.get(getAdapterPosition());
 
                 Intent intent = new Intent(MainActivity.this, RecipeActivity.class);
+
                 intent.putExtra(RecipeActivity.RECIPE_DATA, mRecipe);
+
                 startActivity(intent);
             }
         }
     }
-
-
-
-//    private class RecipeAsyncTask extends AsyncTask<Void, Void, List<Recipe>> {
-//        private Context mContext;
-//        private RecipeDatabase mRecipeDatabase;
-//
-//        public RecipeAsyncTask(Context mContext) {
-//            this.mContext = mContext;
-//        }
-//
-//        @Override
-//        protected void onPreExecute() {
-//            super.onPreExecute();
-//
-//            mRecipeDatabase = RecipeDatabase.getInstance(mContext);
-//        }
-//
-//        @Override
-//        protected List<Recipe> doInBackground(Void... voids) {
-//            Log.i("ADAPTER", "onBackground");
-//
-//            return mRecipeDatabase.getRecipeDao().loadAllRecipes();
-//        }
-//
-//        @Override
-//        protected void onPostExecute(List<Recipe> mRecipe) {
-//            super.onPostExecute(mRecipe);
-//            mMainViewModel.setmRecipes(mRecipe);
-//            mAdapter.updateAdapter(mRecipe);
-//        }
-//    }
-
 }

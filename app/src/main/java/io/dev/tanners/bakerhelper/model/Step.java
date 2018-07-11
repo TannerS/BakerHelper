@@ -1,54 +1,27 @@
 package io.dev.tanners.bakerhelper.model;
 
-import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.Ignore;
-import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Entity
 public class Step implements Parcelable {
-    @PrimaryKey(autoGenerate = true)
     private int id;
-    private int stepId;
     private String shortDescription;
     private String description;
     private String videoUrl;
     private String thumbnailUrl;
 
-    @Ignore
     public Step() {
         // needed for parser
     }
 
-    public Step(int id, int stepId, String shortDescription, String description, String videoUrl, String thumbnailUrl) {
+    public Step(int id, String shortDescription, String description, String videoUrl, String thumbnailUrl) {
         this.id = id;
-        this.stepId = stepId;
         this.shortDescription = shortDescription;
         this.description = description;
         this.videoUrl = videoUrl;
         this.thumbnailUrl = thumbnailUrl;
-    }
-
-    @Ignore
-    public Step(int stepId, String shortDescription, String description, String videoUrl, String thumbnailUrl) {
-        this.stepId = stepId;
-        this.shortDescription = shortDescription;
-        this.description = description;
-        this.videoUrl = videoUrl;
-        this.thumbnailUrl = thumbnailUrl;
-    }
-
-    @JsonProperty("id")
-    public int getStepId() {
-        return stepId;
-    }
-
-    @JsonProperty("id")
-    public void setStepId(int stepId) {
-        this.stepId = stepId;
     }
 
     public int getId() {
@@ -90,7 +63,7 @@ public class Step implements Parcelable {
     }
 
     protected Step(Parcel in) {
-        stepId = in.readInt();
+        id = in.readInt();
         shortDescription = in.readString();
         description = in.readString();
         videoUrl = in.readString();
@@ -104,7 +77,7 @@ public class Step implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(stepId);
+        dest.writeInt(id);
         dest.writeString(shortDescription);
         dest.writeString(description);
         dest.writeString(videoUrl);
