@@ -6,9 +6,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +19,13 @@ import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.model.Step;
 import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
 
+// TODO add toolbar where recipe title is the toolbar title, or something else
+// TODO add step count to step title
+// TODO put fake photo to test image size and style (just in case)
+
 public class RecipeFragment extends Fragment {
+
+    // TODO delete?1
     public final static String RECIPE_DATA = "DATA_FOR_RECIPE";
     public final static String RECIPE_RESTORE_DATA = "DATA_FOR_RECIPE_RESTORE";
     public final static String STEP_ADAPTER_POS = "POS_OF_STEP";
@@ -68,13 +74,20 @@ public class RecipeFragment extends Fragment {
         mRecipe = mCallback.getData();
 
         setUpIngredientList(mRecipe.getIngredients());
-        setUpStepList(mRecipe.getSteps());
+        setUpStepList(mRecipe.getSteps(), setStepAdapterStateCallback());
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // todo save and restore adapter pos//
+
+
+//        if (getArguments() != null) {
+//            mParam1 = getArguments().getString(ARG_PARAM1);
+//            mParam2 = getArguments().getString(ARG_PARAM2);
+//        }
+
     }
 
     @Override
@@ -126,12 +139,55 @@ public class RecipeFragment extends Fragment {
         }
     }
 
-    private void setUpStepList(List<Step> mSteps)
+    private OnClicked setStepAdapterStateCallback()
+    {
+        // not a tablet
+        if(view.findViewById(R.id.recipe_step_container) == null)
+        {
+            return new OnClicked() {
+                @Override
+                public void stepAction(Step mStep) {
+                    Intent intent = new Intent(mContext, StepActivity.class);
+                    intent.putExtra(StepActivity.STEP_DATA, mStep);
+                    startActivity(intent);
+                }
+            };
+        }
+        // possible tablet
+        else {
+
+            return new OnClicked() {
+                @Override
+                public void stepAction(Step mStep) {
+                    // In two-pane mode, add initial BodyPartFragments to the screen
+                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                    // Creating a new head fragment
+                    StepFragment mStepFragment = StepFragment.newInstance(mStep);
+                    // todo possible setter for step or bundle?
+                    fragmentManager.beginTransaction()
+                            .replace(R.id.recipe_step_container, mStepFragment)
+                            .commit();
+                }
+            };
+
+        }
+
+
+
+
+    }
+
+    private void setUpStepList(List<Step> mSteps, OnClicked mOnClicked)
     {
         mStepRecyclerView = (RecyclerView) view.findViewById(R.id.recipe_steps);
         mStepRecyclerLayoutManager = new LinearLayoutManager(mContext);
         mStepRecyclerLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        mStepAdapter = new StepAdapter(mSteps);
+
+        mStepAdapter = new StepAdapter(mSteps, mOnClicked);
+
+
+
+
         mStepRecyclerView.setLayoutManager(mStepRecyclerLayoutManager);
         mStepRecyclerView.setAdapter(mStepAdapter);
     }
@@ -198,9 +254,11 @@ public class RecipeFragment extends Fragment {
     }
 
     private class StepAdapter extends BaseBakerAdapter<Step> {
+        private OnClicked mOnClick;
 
-        public StepAdapter(List<Step> mSteps) {
+        public StepAdapter(List<Step> mSteps, OnClicked mOnClick) {
             this.mBase = mSteps;
+            this.mOnClick = mOnClick;
         }
 
         @NonNull
@@ -235,12 +293,19 @@ public class RecipeFragment extends Fragment {
             public void onClick(View v) {
                 Step mStep = (Step) mBase.get(getAdapterPosition());
 
-                Intent intent = new Intent(mContext, StepActivity.class);
+                mOnClick.stepAction(mStep);
 
-                intent.putExtra(StepActivity.STEP_DATA, mStep);
-
-                startActivity(intent);
+//                Intent intent = new Intent(mContext, StepActivity.class);
+//
+//                intent.putExtra(StepActivity.STEP_DATA, mStep);
+//
+//                startActivity(intent);
             }
         }
+    }
+
+    // TODO possible to use dagger2 (dependency injector) for interface for adapter's onlick?
+    public interface OnClicked {
+        public void stepAction(Step mStep);
     }
 }

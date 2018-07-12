@@ -35,22 +35,49 @@ import com.google.android.exoplayer2.util.Util;
 import io.dev.tanners.bakerhelper.model.Step;
 import io.dev.tanners.bakerhelper.util.ImageDisplay;
 
+// TODO fix text size on this page in tablet mode
+// TODO put fake photo to test image size and style (just in case)
+
+/**
+ * DISCLAIMER *******************************
+ *
+ * This class is used as a static fragment  and dynamic
+ * if this is a static fragment for phone mode, data is passed in via a call back
+ * if it is a dynamic fragment, the data is passed in as a bundle
+ * this is due to the design. the static fragment is set via xml and has no data,
+ * so that is why we use the call back, while the dynamic one has no data, BUT since
+ * the fragment is being called from another fragment, I thought it was bad practice to
+ * use another callback to talk to a fragment when it is said fragments should never talk
+ * directly to each other, and using the activity (at the time I am writing this) is nore problems
+ * then it is worth, when a simple bundle will work. this only changes a few checks in the
+ * onActivityCreated to determine what data to use (one will be null)
+ */
 public class StepFragment extends Fragment implements View.OnClickListener, ExoPlayer.EventListener  {
     private Step mStep;
     private View mView;
+    // this is used for static fragment implementation
+    // other methods are used for dynamic
     private FragmentStepData mCallback;
     private Context mContext;
     private SimpleExoPlayer mExoPlayer;
     private final String mTag = StepFragment.class.getName();
     private SimpleExoPlayerView mPlayerView;
     private String userAgent;
+    // TODO find out if you can use this method for static and dynamic data grabbing
+    public static final String DYNAMIC_STEP_DATA = "DYNAMIC_STEP_DATA";
 
     public StepFragment() {
         // Required empty public constructor
     }
 
-    public static StepFragment newInstance() {
-        return new StepFragment();
+    public static StepFragment newInstance(Step mStep) {
+//    public static StepFragment newInstance() {
+        StepFragment mFragment = new StepFragment();
+        Bundle args = new Bundle();
+        args.putParcelable(DYNAMIC_STEP_DATA, mStep);
+        mFragment.setArguments(args);
+
+        return mFragment;
     }
 
     private void setResources()
@@ -151,7 +178,12 @@ public class StepFragment extends Fragment implements View.OnClickListener, ExoP
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        mStep = mCallback.getStep();
+        // if not null, its a static fragment
+        if(mCallback != null)
+            mStep = mCallback.getStep();
+        // dynamic fragment
+        else
+            mStep = getArguments().getParcelable(DYNAMIC_STEP_DATA);
 
         setResources();
     }
@@ -162,12 +194,20 @@ public class StepFragment extends Fragment implements View.OnClickListener, ExoP
 
         mContext = context;
 
+        // TODO maybe catch for dynamic and set as null
+
+        // static fragment if this is created from the activity
         if (context instanceof FragmentStepData) {
+            // static fragment
             mCallback = (FragmentStepData) context;
+        // dynamic fragment if called from a activity not needed this interface
         } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement FragmentStepData");
+            mCallback = null;
+
+//            throw new RuntimeException(context.toString()
+//                    + " must implement FragmentStepData");
         }
+//
     }
 
     @Override
@@ -222,8 +262,11 @@ public class StepFragment extends Fragment implements View.OnClickListener, ExoP
      * Release ExoPlayer.
      */
     private void releasePlayer() {
-        mExoPlayer.stop();
-        mExoPlayer.release();
+        if(mExoPlayer != null)
+        {
+            mExoPlayer.stop();
+            mExoPlayer.release();
+        }
     }
 
     @Override

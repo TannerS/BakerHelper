@@ -11,17 +11,19 @@
     app:cardMaxElevation="4dp"
     app:cardUseCompatPadding="true"
     app:cardPreventCornerOverlap="false">
-
+    <!--TODO add button click transition? effect?-->
     <FrameLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="center">
 
         <ImageView
             android:id="@+id/main_recipe_item_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"
+            android:textAlignment="center"
             android:src="@drawable/ic_outline_local_dining_24px"
             android:adjustViewBounds="true" />
 

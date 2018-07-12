@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setupViewModel();
+        determineAdapterProperties();
         setUpAdapter();
         getData();
     }
@@ -68,11 +69,11 @@ public class MainActivity extends AppCompatActivity{
 
     private void setUpAdapter()
     {
-        mGridLayoutManager = new GridLayoutManager(this, 1);
+//        mGridLayoutManager = new GridLayoutManager(this, 1);
 
-        mRecyclerView = findViewById(R.id.main_recipe_list);
+//        mRecyclerView = findViewById(R.id.main_recipe_list);
 
-        if(mGridLayoutManager != null) {
+        if(mGridLayoutManager != null && mRecyclerView != null) {
             // smooth scrolling
             mGridLayoutManager.setSmoothScrollbarEnabled(true);
             // set up with layout manager
@@ -82,6 +83,23 @@ public class MainActivity extends AppCompatActivity{
             // set adapter
             mRecyclerView.setAdapter(mAdapter);
         }
+    }
+
+
+    private void determineAdapterProperties()
+    {
+        mRecyclerView = findViewById(R.id.main_recipe_list_wide);
+
+        if(mRecyclerView != null)
+        {
+            mGridLayoutManager = new GridLayoutManager(this, 3);
+        }
+        else
+        {
+            mRecyclerView = findViewById(R.id.main_recipe_list);
+            mGridLayoutManager = new GridLayoutManager(this, 1);
+        }
+
     }
 
     protected class RecipeAdapter extends BaseBakerAdapter<Recipe>
