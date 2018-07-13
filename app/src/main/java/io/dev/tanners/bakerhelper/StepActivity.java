@@ -2,8 +2,6 @@ package io.dev.tanners.bakerhelper;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-
-import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.model.Step;
 
 public class StepActivity extends AppCompatActivity implements StepFragment.FragmentStepData {

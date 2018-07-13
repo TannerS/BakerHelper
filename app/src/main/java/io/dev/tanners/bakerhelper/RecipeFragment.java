@@ -24,20 +24,13 @@ import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
 // TODO put fake photo to test image size and style (just in case)
 
 public class RecipeFragment extends Fragment {
-
-    // TODO delete?1
     public final static String RECIPE_DATA = "DATA_FOR_RECIPE";
-    public final static String RECIPE_RESTORE_DATA = "DATA_FOR_RECIPE_RESTORE";
     public final static String STEP_ADAPTER_POS = "POS_OF_STEP";
     public final static String ING_ADAPTER_POS = "POS_OF_ING";
 
     private Recipe mRecipe;
     private RecyclerView mStepRecyclerView;
     private RecyclerView mIngredientRecyclerView;
-    private LinearLayoutManager mStepRecyclerLayoutManager;
-    private LinearLayoutManager mIngredientRecyclerLayoutManager;
-    private IngredientAdapter mIngredientAdapter;
-    private StepAdapter mStepAdapter;
     private View view;
     // Define a new interface OnImageClickListener that triggers a callback in the host activity
     private FragmentData mCallback;
@@ -80,14 +73,6 @@ public class RecipeFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // todo save and restore adapter pos//
-
-
-//        if (getArguments() != null) {
-//            mParam1 = getArguments().getString(ARG_PARAM1);
-//            mParam2 = getArguments().getString(ARG_PARAM2);
-//        }
-
     }
 
     @Override
@@ -155,14 +140,14 @@ public class RecipeFragment extends Fragment {
         }
         // possible tablet
         else {
-
             return new OnClicked() {
                 @Override
                 public void stepAction(Step mStep) {
                     // In two-pane mode, add initial BodyPartFragments to the screen
                     FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                     // Creating a new head fragment
-                    StepFragment mStepFragment = StepFragment.newInstance(mStep);
+                    StepFragmentDynamic mStepFragment = StepFragmentDynamic.newInstance(mStep);
+
                     // todo possible setter for step or bundle?
                     fragmentManager.beginTransaction()
                             .replace(R.id.recipe_step_container, mStepFragment)
@@ -171,23 +156,14 @@ public class RecipeFragment extends Fragment {
             };
 
         }
-
-
-
-
     }
 
     private void setUpStepList(List<Step> mSteps, OnClicked mOnClicked)
     {
         mStepRecyclerView = (RecyclerView) view.findViewById(R.id.recipe_steps);
-        mStepRecyclerLayoutManager = new LinearLayoutManager(mContext);
+        LinearLayoutManager mStepRecyclerLayoutManager = new LinearLayoutManager(mContext);
         mStepRecyclerLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-
-        mStepAdapter = new StepAdapter(mSteps, mOnClicked);
-
-
-
-
+        StepAdapter mStepAdapter = new StepAdapter(mSteps, mOnClicked);
         mStepRecyclerView.setLayoutManager(mStepRecyclerLayoutManager);
         mStepRecyclerView.setAdapter(mStepAdapter);
     }
@@ -195,9 +171,9 @@ public class RecipeFragment extends Fragment {
     private void setUpIngredientList(List<Ingredient> mIngredients)
     {
         mIngredientRecyclerView = (RecyclerView) view.findViewById(R.id.recipe_ingredients);
-        mIngredientRecyclerLayoutManager = new LinearLayoutManager(mContext);
+        LinearLayoutManager mIngredientRecyclerLayoutManager = new LinearLayoutManager(mContext);
         mIngredientRecyclerLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        mIngredientAdapter = new IngredientAdapter(mIngredients);
+        IngredientAdapter mIngredientAdapter = new IngredientAdapter(mIngredients);
         mIngredientRecyclerView.setLayoutManager(mIngredientRecyclerLayoutManager);
         mIngredientRecyclerView.setAdapter(mIngredientAdapter);
     }
@@ -292,14 +268,7 @@ public class RecipeFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Step mStep = (Step) mBase.get(getAdapterPosition());
-
                 mOnClick.stepAction(mStep);
-
-//                Intent intent = new Intent(mContext, StepActivity.class);
-//
-//                intent.putExtra(StepActivity.STEP_DATA, mStep);
-//
-//                startActivity(intent);
             }
         }
     }
