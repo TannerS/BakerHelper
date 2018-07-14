@@ -5,6 +5,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,7 +37,7 @@ import com.google.android.exoplayer2.util.Util;
 import io.dev.tanners.bakerhelper.model.Step;
 import io.dev.tanners.bakerhelper.util.ImageDisplay;
 
-public class StepFragmentBase extends Fragment implements View.OnClickListener, ExoPlayer.EventListener  {
+public abstract class StepFragmentBase extends Fragment implements View.OnClickListener, ExoPlayer.EventListener  {
     protected Step mStep;
     protected View mView;
     protected Context mContext;
@@ -44,18 +47,12 @@ public class StepFragmentBase extends Fragment implements View.OnClickListener, 
     protected String userAgent;
     // TODO find out if you can use this method for static and dynamic data grabbing
     public static final String DYNAMIC_STEP_DATA = "DYNAMIC_STEP_DATA";
+    private MediaSessionCompat mMediaSession;
+    private PlaybackStateCompat.Builder mStateBuilder;
 
     public StepFragmentBase() {
         // Required empty public constructor
     }
-
-//    public static StepFragmentBase newInstance(Step mStep) {
-//        StepFragmentBase mFragment = new StepFragmentBase();
-//        Bundle args = new Bundle();
-//        args.putParcelable(DYNAMIC_STEP_DATA, mStep);
-//        mFragment.setArguments(args);
-//        return mFragment;
-//    }
 
     private void setResources()
     {
@@ -64,7 +61,7 @@ public class StepFragmentBase extends Fragment implements View.OnClickListener, 
         mPlayerView = mView.findViewById(R.id.recipe_step_video);
         FrameLayout mRecipeStepVideoContainer = mView.findViewById(R.id.recipe_step_video_container);
 
-        if (checkForProperImageType(getMimeExtType(mStep.getThumbnailUrl()))) {
+        if (!mStep.getThumbnailUrl().isEmpty() && checkForProperImageType(getMimeExtType(mStep.getThumbnailUrl()))) {
             ImageDisplay.loadImage(
                     (this.mContext),
                     // glide can handle images AND videos (to be processed as a thumbnail)
@@ -79,6 +76,7 @@ public class StepFragmentBase extends Fragment implements View.OnClickListener, 
 
         if (checkForProperMediaType(getMimeExtType(mStep.getVideoUrl()))) {
             Uri mUri = Uri.parse((mStep.getVideoUrl()));
+            setUpMediaSession();
             initializePlayer(mUri);
         } else {
             // no video, so hide it!
@@ -103,6 +101,7 @@ public class StepFragmentBase extends Fragment implements View.OnClickListener, 
                             mExtension
                     );
         }
+        Log.i("MIME", mExtension);
         // if it gets here, its returning null
         // this is expected
         return mExtension;
@@ -201,6 +200,32 @@ public class StepFragmentBase extends Fragment implements View.OnClickListener, 
         }
     }
 
+    private void setUpMediaSession()
+    {
+        mMediaSession = new MediaSessionCompat(mContext, mTag);
+        // Enable callbacks from MediaButtons and TransportControls.
+        mMediaSession.setFlags(
+                MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
+                | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
+        );
+        // when app is not visible, don't let media buttons restart the player
+        mMediaSession.setMediaButtonReceiver(null);
+        // set init state so media buttons can control the player
+        mStateBuilder = new PlaybackStateCompat.Builder()
+        .setActions(
+                PlaybackStateCompat.ACTION_PLAY
+                        | PlaybackStateCompat.ACTION_PAUSE
+                        | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
+                        | PlaybackStateCompat.ACTION_PLAY_PAUSE
+        );
+        // build state and set
+        mMediaSession.setPlaybackState(mStateBuilder.build());
+        //  handle callbacks from a media controller.
+        mMediaSession.setCallback(new MediaSessionCallBack());
+        // Start the Media Session
+        mMediaSession.setActive(true);
+    }
+
     /**
      * Release ExoPlayer.
      */
@@ -231,10 +256,26 @@ public class StepFragmentBase extends Fragment implements View.OnClickListener, 
     public void onLoadingChanged(boolean isLoading) {
 
     }
-
+    /**
+     +     * Method that is called when the ExoPlayer state changes. Used to update the MediaSession
+     +     * PlayBackState to keep in sync.
+     +     * @param playWhenReady true if ExoPlayer is playing, false if it's paused.
+     +     * @param playbackState int describing the state of ExoPlayer. Can be STATE_READY, STATE_IDLE,
+     +     *                      STATE_BUFFERING, or STATE_ENDED.
+     +     */
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-
+        // when state is ready and playWhenReady is true meaning exoplayer is playing
+        if ((playbackState == ExoPlayer.STATE_READY) && playWhenReady) {
+            mStateBuilder.setState(PlaybackStateCompat.STATE_PLAYING,
+                    mExoPlayer.getCurrentPosition(), 1f);
+        // state is ready and player is paused
+        } else if ((playbackState == ExoPlayer.STATE_READY) && !playWhenReady) {
+            mStateBuilder.setState(PlaybackStateCompat.STATE_PAUSED,
+                    mExoPlayer.getCurrentPosition(), 1f);
+        }
+        // set state
+        mMediaSession.setPlaybackState(mStateBuilder.build());
     }
 
     @Override
@@ -246,4 +287,27 @@ public class StepFragmentBase extends Fragment implements View.OnClickListener, 
     public void onPositionDiscontinuity() {
 
     }
+
+    // this is called by external clients
+    // and call onPlayerStateChanged
+//    and update media session state via setPlaybackState
+    private class MediaSessionCallBack extends MediaSessionCompat.Callback {
+       @Override
+       public void onPlay() {
+           // set media session to play
+           mExoPlayer.setPlayWhenReady(true);
+       }
+
+       @Override
+       public void onPause() {
+           // pause session
+           mExoPlayer.setPlayWhenReady(false);
+       }
+
+       @Override
+       public void onSkipToPrevious() {
+           // restart player
+           mExoPlayer.seekTo(0);
+       }
+   }
 }
