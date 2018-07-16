@@ -3,6 +3,9 @@ package io.dev.tanners.bakerhelper;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+
 import io.dev.tanners.bakerhelper.model.Step;
 
 // TODO fix text size on this page in tablet mode
@@ -29,8 +32,11 @@ public class StepFragment extends StepFragmentBase {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         if(mCallback != null)
             mStep = mCallback.getStep();
-
+        // need data before calling parent that uses those resources
         super.onActivityCreated(savedInstanceState);
+
+        // TODO handle large short descriptions
+        setUpToolbar();
     }
 
     @Override
@@ -47,6 +53,13 @@ public class StepFragment extends StepFragmentBase {
             throw new RuntimeException(context.toString()
                     + " must implement FragmentStepData");
         }
+    }
+
+    private void setUpToolbar()
+    {
+        Toolbar mToolbar = (Toolbar) mView.findViewById(R.id.main_toolbar);
+        mToolbar.setTitle(mStep.getShortDescription());
+        ((AppCompatActivity)getActivity()).setSupportActionBar(mToolbar);
     }
 
     public interface FragmentStepData {

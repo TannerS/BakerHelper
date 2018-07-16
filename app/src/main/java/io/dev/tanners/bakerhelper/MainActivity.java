@@ -6,9 +6,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
+import android.support.test.espresso.IdlingResource;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,22 +25,30 @@ import io.dev.tanners.bakerhelper.aac.MainViewModelFactory;
 import io.dev.tanners.bakerhelper.network.RecipeRepository;
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
+import io.dev.tanners.bakerhelper.test.IdlingResourceHelper;
 import io.dev.tanners.bakerhelper.util.ImageDisplay;
 
-public class MainActivity extends AppCompatActivity{
+public class MainActivity extends AppCompatActivity {
     private RecipeAdapter mAdapter;
     private GridLayoutManager mGridLayoutManager;
     private RecyclerView mRecyclerView;
     private MainViewModel mMainViewModel;
+    private IdlingResourceHelper mIdlingResource;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (mIdlingResource != null) {
+            mIdlingResource.setState(false);
+        }
+
         setupViewModel();
         determineAdapterProperties();
         setUpAdapter();
         getData();
+        setUpToolbar();
     }
 
     private void setupViewModel() {
@@ -54,7 +66,7 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
-    private void getData()
+    private synchronized void getData()
     {
         mMainViewModel.getmRecipes().observe(this, new Observer<List<Recipe>>() {
             @Override
@@ -62,6 +74,10 @@ public class MainActivity extends AppCompatActivity{
                 // update adapter
                 if(mAdapter != null) {
                     mAdapter.updateAdapter(mRecipes);
+                    if (mIdlingResource != null) {
+                        mIdlingResource.setState(true);
+                    }
+
                 }
             }
         });
@@ -69,10 +85,6 @@ public class MainActivity extends AppCompatActivity{
 
     private void setUpAdapter()
     {
-//        mGridLayoutManager = new GridLayoutManager(this, 1);
-
-//        mRecyclerView = findViewById(R.id.main_recipe_list);
-
         if(mGridLayoutManager != null && mRecyclerView != null) {
             // smooth scrolling
             mGridLayoutManager.setSmoothScrollbarEnabled(true);
@@ -84,7 +96,6 @@ public class MainActivity extends AppCompatActivity{
             mRecyclerView.setAdapter(mAdapter);
         }
     }
-
 
     private void determineAdapterProperties()
     {
@@ -100,6 +111,13 @@ public class MainActivity extends AppCompatActivity{
             mGridLayoutManager = new GridLayoutManager(this, 1);
         }
 
+    }
+
+    private void setUpToolbar()
+    {
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.main_toolbar);
+        mToolbar.setTitle(getString(R.string.app_name));
+        setSupportActionBar(mToolbar);
     }
 
     protected class RecipeAdapter extends BaseBakerAdapter<Recipe>
@@ -153,5 +171,15 @@ public class MainActivity extends AppCompatActivity{
                 startActivity(intent);
             }
         }
+    }
+
+    @VisibleForTesting
+    @NonNull
+    public IdlingResource getIdlingResource() {
+        if (mIdlingResource == null) {
+            mIdlingResource = new IdlingResourceHelper();
+        }
+
+        return mIdlingResource;
     }
 }

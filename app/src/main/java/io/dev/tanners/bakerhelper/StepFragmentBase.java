@@ -47,8 +47,8 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
     protected String userAgent;
     // TODO find out if you can use this method for static and dynamic data grabbing
     public static final String DYNAMIC_STEP_DATA = "DYNAMIC_STEP_DATA";
-    private MediaSessionCompat mMediaSession;
-    private PlaybackStateCompat.Builder mStateBuilder;
+    protected MediaSessionCompat mMediaSession;
+    protected PlaybackStateCompat.Builder mStateBuilder;
 
     public StepFragmentBase() {
         // Required empty public constructor

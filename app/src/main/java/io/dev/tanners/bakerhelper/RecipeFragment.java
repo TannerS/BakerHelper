@@ -5,10 +5,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
+import android.support.test.espresso.IdlingResource;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +23,7 @@ import io.dev.tanners.bakerhelper.model.Ingredient;
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.model.Step;
 import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
+import io.dev.tanners.bakerhelper.test.IdlingResourceHelper;
 
 // TODO add toolbar where recipe title is the toolbar title, or something else
 // TODO add step count to step title
@@ -64,10 +70,18 @@ public class RecipeFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         // get data from activity
-        mRecipe = mCallback.getData();
+        if(mCallback != null) {
+            mRecipe = mCallback.getData();
+        }
 
-        setUpIngredientList(mRecipe.getIngredients());
-        setUpStepList(mRecipe.getSteps(), setStepAdapterStateCallback());
+        if(mRecipe != null)
+        {
+            if(mRecipe.getIngredients() != null)
+                setUpIngredientList(mRecipe.getIngredients());
+            if(mRecipe.getSteps() !=null)
+                setUpStepList(mRecipe.getSteps(), setStepAdapterStateCallback());
+            setUpToolbar();
+        }
     }
 
     @Override
@@ -122,6 +136,14 @@ public class RecipeFragment extends Fragment {
                     savedInstanceState.getParcelable(ING_ADAPTER_POS)
             );
         }
+    }
+
+
+    private void setUpToolbar()
+    {
+        Toolbar mToolbar = (Toolbar) view.findViewById(R.id.main_toolbar);
+        mToolbar.setTitle(mRecipe.getName());
+        ((AppCompatActivity)getActivity()).setSupportActionBar(mToolbar);
     }
 
     private OnClicked setStepAdapterStateCallback()

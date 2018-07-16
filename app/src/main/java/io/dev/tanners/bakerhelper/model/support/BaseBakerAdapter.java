@@ -39,5 +39,6 @@ public class BaseBakerAdapter<E> extends RecyclerView.Adapter<RecyclerView.ViewH
     {
         this.mBase = mBase;
         notifyDataSetChanged();
+
     }
 }
