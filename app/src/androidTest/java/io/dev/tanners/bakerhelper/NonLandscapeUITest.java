@@ -107,11 +107,11 @@ public class NonLandscapeUITest {
     public void mainActivityToolbar_isDisplayed() {
         onView(withId(R.id.toolbar)).check(matches(isDisplayed()));
     }
-//
-//    @Test
-//    public void mainActivityList_hasItems() {
-//        onView(withId(R.id.main_recipe_list)).check(new RecyclerViewItemCountAssertion());
-//    }
+
+    @Test
+    public void mainActivityList_hasItems() {
+        onView(withId(R.id.main_recipe_list)).check(new RecyclerViewItemCountAssertion());
+    }
 
     @After
     public void unregisterIdlingResource() {
@@ -124,18 +124,18 @@ public class NonLandscapeUITest {
     /**
      * All credit: https://stackoverflow.com/a/37339656/2449314
      */
-//    public class RecyclerViewItemCountAssertion implements ViewAssertion {
-//
-//        @Override
-//        public void check(View view, NoMatchingViewException noViewFoundException) {
-//            if (noViewFoundException != null) {
-//                throw noViewFoundException;
-//            }
-//
-//            RecyclerView recyclerView = (RecyclerView) view;
-//            MainActivity.RecipeAdapter adapter = (MainActivity.RecipeAdapter) recyclerView.getAdapter();
-//
-//            assertThat(adapter.getItemCount(), greaterThan(0));
-//        }
-//    }
+    public class RecyclerViewItemCountAssertion implements ViewAssertion {
+
+        @Override
+        public void check(View view, NoMatchingViewException noViewFoundException) {
+            if (noViewFoundException != null) {
+                throw noViewFoundException;
+            }
+
+            RecyclerView recyclerView = (RecyclerView) view;
+            MainActivity.RecipeAdapter adapter = (MainActivity.RecipeAdapter) recyclerView.getAdapter();
+
+            assertThat(adapter.getItemCount(), greaterThan(0));
+        }
+    }
 }
