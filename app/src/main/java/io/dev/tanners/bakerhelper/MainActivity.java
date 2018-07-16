@@ -28,6 +28,7 @@ import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
 import io.dev.tanners.bakerhelper.test.IdlingResourceHelper;
 import io.dev.tanners.bakerhelper.util.ImageDisplay;
 
+// TODO save/restore list positions
 public class MainActivity extends AppCompatActivity {
     private RecipeAdapter mAdapter;
     private GridLayoutManager mGridLayoutManager;

@@ -4,6 +4,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import io.dev.tanners.bakerhelper.model.Step;
 
+// TODO save/restore list positions
 public class StepActivity extends AppCompatActivity implements StepFragment.FragmentStepData {
     public static final String STEP_DATA = "STEP_DATA";
 

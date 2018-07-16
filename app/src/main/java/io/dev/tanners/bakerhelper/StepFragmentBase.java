@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -59,8 +60,7 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
         ImageView mThumbnail = mView.findViewById(R.id.recipe_step_thumbnail);
         TextView mDesc = mView.findViewById(R.id.recipe_step_desc);
         mPlayerView = mView.findViewById(R.id.recipe_step_video);
-        FrameLayout mRecipeStepVideoContainer = mView.findViewById(R.id.recipe_step_video_container);
-
+//        ConstraintLayout mRecipeStepVideoContainer = mView.findViewById(R.id.fragment_step_partial_header_container);
         if (!mStep.getThumbnailUrl().isEmpty() && checkForProperImageType(getMimeExtType(mStep.getThumbnailUrl()))) {
             ImageDisplay.loadImage(
                     (this.mContext),
@@ -79,8 +79,10 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
             setUpMediaSession();
             initializePlayer(mUri);
         } else {
-            // no video, so hide it!
-            mRecipeStepVideoContainer.setVisibility(View.GONE);
+            ConstraintLayout mRecipeStepVideoContainer = mView.findViewById(R.id.fragment_step_partial_header);
+            if(mRecipeStepVideoContainer != null)
+                // no video, so hide it!
+                mRecipeStepVideoContainer.setVisibility(View.GONE);
         }
 
         mDesc.setText(mStep.getDescription());

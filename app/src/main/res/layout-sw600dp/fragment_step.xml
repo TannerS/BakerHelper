@@ -1,37 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content" >
-    <!--TODO fix the problem where if video is null, the space is still taken up-->
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary">
 
-    <include
-        android:id="@+id/toolbar"
-        layout="@layout/toolbar"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="?android:attr/actionBarSize"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:layout_height="match_parent">
+        <!--TODO fix the problem where if video is null, the space is still taken up-->
 
-    <include
-        android:id="@+id/fragment_step_partial_header"
-        layout="@layout/fragment_step_partial_header"
-        android:layout_width="match_parent"
-        android:layout_height="500dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        <include
+            android:id="@+id/fragment_step_partial_header"
+            layout="@layout/fragment_step_partial_header"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <include
-        layout="@layout/fragment_step_partial_body"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fragment_step_partial_header" />
+        <include
+            android:id="@+id/fragment_step_partial_body"
+            layout="@layout/fragment_step_partial_body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/fragment_step_partial_header" />
 
+    </android.support.constraint.ConstraintLayout>
+</ScrollView>
 
-</android.support.constraint.ConstraintLayout>
