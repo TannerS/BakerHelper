@@ -8,9 +8,6 @@ import android.support.v7.widget.Toolbar;
 
 import io.dev.tanners.bakerhelper.model.Step;
 
-// TODO fix text size on this page in tablet mode
-// TODO put fake photo to test image size and style (just in case)
-
 public class StepFragment extends StepFragmentBase {
     // this is used for static fragment implementation
     // other methods are used for dynamic
@@ -35,7 +32,6 @@ public class StepFragment extends StepFragmentBase {
         // need data before calling parent that uses those resources
         super.onActivityCreated(savedInstanceState);
 
-        // TODO handle large short descriptions
         setUpToolbar();
     }
 

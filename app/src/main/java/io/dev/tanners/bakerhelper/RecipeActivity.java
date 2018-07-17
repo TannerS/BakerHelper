@@ -10,7 +10,6 @@ import android.support.v7.widget.Toolbar;
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.test.IdlingResourceHelper;
 
-// TODO save/restore list positions
 public class RecipeActivity extends AppCompatActivity implements RecipeFragment.FragmentData {
     public final static String RECIPE_DATA = "DATA_FOR_RECIPE";
 

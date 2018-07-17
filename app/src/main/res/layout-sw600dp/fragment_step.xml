@@ -9,7 +9,6 @@
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <!--TODO fix the problem where if video is null, the space is still taken up-->
 
         <include
             android:id="@+id/fragment_step_partial_header"

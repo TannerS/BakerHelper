@@ -46,7 +46,6 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
     protected final String mTag = StepFragmentBase.class.getName();
     protected SimpleExoPlayerView mPlayerView;
     protected String userAgent;
-    // TODO find out if you can use this method for static and dynamic data grabbing
     public static final String DYNAMIC_STEP_DATA = "DYNAMIC_STEP_DATA";
     protected MediaSessionCompat mMediaSession;
     protected PlaybackStateCompat.Builder mStateBuilder;

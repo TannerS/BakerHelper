@@ -4,6 +4,7 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
@@ -28,8 +29,8 @@ import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
 import io.dev.tanners.bakerhelper.test.IdlingResourceHelper;
 import io.dev.tanners.bakerhelper.util.ImageDisplay;
 
-// TODO save/restore list positions
 public class MainActivity extends AppCompatActivity {
+    private final static String ADAPTER_RESTORE_KEY = "RECIPE_RESTORE_KEY";
     private RecipeAdapter mAdapter;
     private GridLayoutManager mGridLayoutManager;
     private RecyclerView mRecyclerView;
@@ -53,6 +54,25 @@ public class MainActivity extends AppCompatActivity {
         setUpToolbar();
     }
 
+
+
+    @Override
+    public void onRestoreInstanceState(@Nullable Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        if(savedInstanceState != null)
+        {
+            Parcelable mSavedRecyclerLayoutState = savedInstanceState.getParcelable(ADAPTER_RESTORE_KEY);
+            mRecyclerView.getLayoutManager().onRestoreInstanceState(mSavedRecyclerLayoutState);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(ADAPTER_RESTORE_KEY, mRecyclerView.getLayoutManager().onSaveInstanceState());
+    }
+
     private void setupViewModel() {
         // load view model
         try {
@@ -60,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                         this,
                     new MainViewModelFactory(
                             getApplication(),
-                            new RecipeRepository(this)
+                            new RecipeRepository(this, findViewById(R.id.main_container))
                     )).get(MainViewModel.class);
         } catch (IOException e) {
             e.printStackTrace();

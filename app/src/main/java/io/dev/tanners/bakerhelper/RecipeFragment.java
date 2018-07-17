@@ -3,6 +3,7 @@ package io.dev.tanners.bakerhelper;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
@@ -24,10 +25,6 @@ import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.model.Step;
 import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
 import io.dev.tanners.bakerhelper.test.IdlingResourceHelper;
-
-// TODO add toolbar where recipe title is the toolbar title, or something else
-// TODO add step count to step title
-// TODO put fake photo to test image size and style (just in case)
 
 public class RecipeFragment extends Fragment {
     public final static String RECIPE_DATA = "DATA_FOR_RECIPE";
@@ -110,19 +107,15 @@ public class RecipeFragment extends Fragment {
     }
 
     @Override
-    // https://stackoverflow.com/a/29166336/2449314
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
 
         savedInstanceState.putParcelable(STEP_ADAPTER_POS, mStepRecyclerView.getLayoutManager().onSaveInstanceState());
         savedInstanceState.putParcelable(ING_ADAPTER_POS, mIngredientRecyclerView.getLayoutManager().onSaveInstanceState());
 
-        // TODO is this needed when we have the getIntent().hasExtra?
-        // TODO this is for current state, such as scroll position
     }
 
     @Override
-    // https://stackoverflow.com/a/29166336/2449314
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
 
@@ -170,7 +163,6 @@ public class RecipeFragment extends Fragment {
                     // Creating a new head fragment
                     StepFragmentDynamic mStepFragment = StepFragmentDynamic.newInstance(mStep);
 
-                    // todo possible setter for step or bundle?
                     fragmentManager.beginTransaction()
                             .replace(R.id.recipe_step_container, mStepFragment)
                             .commit();
@@ -295,8 +287,8 @@ public class RecipeFragment extends Fragment {
         }
     }
 
-    // TODO possible to use dagger2 (dependency injector) for interface for adapter's onlick?
     public interface OnClicked {
         public void stepAction(Step mStep);
     }
+
 }

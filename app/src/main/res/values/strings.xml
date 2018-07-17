@@ -2,4 +2,7 @@
     <string name="app_name">BakerHelper</string>
     <string name="recipe_ingr_amount_concat">&#160;of&#160;</string>
     <string name="space">&#160;</string>
+    <string name="loading_image_error_dismiss">Dismiss</string>
+    <string name="failure_to_download_data">Error downloading data</string>
+    <string name="problem_with_data">An error has occurred</string>
 </resources>
