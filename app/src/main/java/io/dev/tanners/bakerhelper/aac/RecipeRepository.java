@@ -41,12 +41,12 @@ public class RecipeRepository {
         RecipeExecutor.getInstance().mDiskIO().execute(new Runnable() {
             @Override
             public void run() {
-                mData.setValue(mDb.getRecipeDao().loadAllRecipes());
+                // https://stackoverflow.com/a/44293595/2449314
+                mData.postValue(mDb.getRecipeDao().loadAllRecipes());
             }
         });
 
         // data will be empty on return but live data will update it when it comes
         return mData;
-
     }
 }

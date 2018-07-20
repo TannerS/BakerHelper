@@ -1,7 +1,5 @@
 package io.dev.tanners.bakerhelper;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
@@ -12,6 +10,8 @@ import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.support.design.widget.Snackbar;
 import android.support.test.espresso.IdlingResource;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -25,18 +25,16 @@ import android.widget.TextView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 import io.dev.tanners.bakerhelper.aac.MainViewModel;
 import io.dev.tanners.bakerhelper.aac.MainViewModelFactory;
-import io.dev.tanners.bakerhelper.aac.db.RecipeDao;
 import io.dev.tanners.bakerhelper.aac.db.RecipeDatabase;
-import io.dev.tanners.bakerhelper.aac.db.RecipeExecutor;
 import io.dev.tanners.bakerhelper.network.NetworkCall;
 import io.dev.tanners.bakerhelper.network.NetworkData;
 import io.dev.tanners.bakerhelper.aac.RecipeRepository;
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
+import io.dev.tanners.bakerhelper.network.RecipeLoader;
 import io.dev.tanners.bakerhelper.test.IdlingResourceHelper;
 import io.dev.tanners.bakerhelper.util.ImageDisplay;
 import io.dev.tanners.bakerhelper.util.SimpleSnackBarBuilder;
@@ -46,13 +44,19 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
-public class MainActivity extends AppCompatActivity {
+// TODO error checking
+// TODO WAIT for network, pull db if none, else make network call
+// TODO maybe display db data to load early, and update if needed
+// TODO loading dialog
+public class MainActivity extends AppCompatActivity implements RecipeLoader.OnLoadInBackGroundCallBack, LoaderManager.LoaderCallbacks<Void> {
     private final static String ADAPTER_RESTORE_KEY = "RECIPE_RESTORE_KEY";
+    private final static int RECIPE_LOADER = 123456789;
     private RecipeAdapter mAdapter;
     private GridLayoutManager mGridLayoutManager;
     private RecyclerView mRecyclerView;
     private MainViewModel mMainViewModel;
     private IdlingResourceHelper mIdlingResource;
+    private List<Recipe> mRecipes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,29 +71,26 @@ public class MainActivity extends AppCompatActivity {
         getNetworkData();
     }
 
-    private void finishLoadingResources()
+    private void setUpDbData()
     {
-        setupViewModel();
-        determineAdapterProperties();
-        setUpAdapter();
-        getData();
-        setUpToolbar();
+        final RecipeDatabase mDb = RecipeDatabase.getInstance(getApplicationContext());
+        mDb.getRecipeDao().insertRecipes(mRecipes);
     }
 
     // todo https://stackoverflow.com/questions/10695152/java-pattern-for-nested-callbacks
-    private void setUpDbData(final List<Recipe> mRecipes)
-    {
-        // TODO dagger 2?
-        final RecipeDatabase mDb = RecipeDatabase.getInstance(getApplicationContext());
-
-        RecipeExecutor.getInstance().mDiskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                mDb.getRecipeDao().insertRecipes(mRecipes);
-                finishLoadingResources();
-            }
-        });
-    }
+//    private void setUpDbData(final List<Recipe> mRecipes)
+//    {
+//        // TODO dagger 2?
+//        final RecipeDatabase mDb = RecipeDatabase.getInstance(getApplicationContext());
+//
+//        RecipeExecutor.getInstance().mDiskIO().execute(new Runnable() {
+//            @Override
+//            public void run() {
+//                mDb.getRecipeDao().insertRecipes(mRecipes);
+//                finishLoadingResources();
+//            }
+//        });
+//    }
 
     @Override
     public void onRestoreInstanceState(@Nullable Bundle savedInstanceState) {
@@ -125,9 +126,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void getNetworkData()
     {
-//        public LiveData<List<Recipe>> getAllRecipes() throws IOException {
-//        mData = new MutableLiveData<List<Recipe>>();
-
         ObjectMapper mMapper = new ObjectMapper();
 
         Retrofit mRetrofit = new Retrofit.Builder()
@@ -142,8 +140,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Recipe>> call, Response<List<Recipe>> response) {
                 if (response.isSuccessful()) {
-                    // rest of page needs this data, so lets call this here
-                    setUpDbData(response.body());
+                    mRecipes = response.body();
+                    loadLoader();
                 } else {
                     displayMessage(findViewById(R.id.main_container), R.string.problem_with_data);
                 }
@@ -154,11 +152,18 @@ public class MainActivity extends AppCompatActivity {
                 displayMessage(findViewById(R.id.main_container), R.string.failure_to_download_data);
             }
         });
-        // could be returned empty but livedata will update it when needed
-//        return mData;
-//    }
+    }
 
+    private void loadLoader()
+    {
+        LoaderManager mLoaderManager = getSupportLoaderManager();
 
+        Loader<Void> mLoader = mLoaderManager.getLoader(RECIPE_LOADER);
+        // check loader instance
+        if(mLoader != null)
+            mLoaderManager.initLoader(RECIPE_LOADER, null, this).forceLoad();
+        else
+            mLoaderManager.restartLoader(RECIPE_LOADER, null, this).forceLoad();
     }
 
     private void displayMessage(View mView, int mStringId) {
@@ -222,6 +227,33 @@ public class MainActivity extends AppCompatActivity {
         Toolbar mToolbar = (Toolbar) findViewById(R.id.main_toolbar);
         mToolbar.setTitle(getString(R.string.app_name));
         setSupportActionBar(mToolbar);
+    }
+
+    @Override
+    public void _do() {
+        // get data for db
+        setUpDbData();
+        // view model will call our db, so db needed to be populated prior
+        setupViewModel();
+    }
+
+    @NonNull
+    @Override
+    public Loader<Void> onCreateLoader(int id, @Nullable Bundle args) {
+        return new RecipeLoader(this, args);
+    }
+
+    @Override
+    public void onLoadFinished(@NonNull Loader<Void> loader, Void data) {
+        determineAdapterProperties();
+        setUpAdapter();
+        getData();
+        setUpToolbar();
+    }
+
+    @Override
+    public void onLoaderReset(@NonNull Loader<Void> loader) {
+
     }
 
     protected class RecipeAdapter extends BaseBakerAdapter<Recipe>
