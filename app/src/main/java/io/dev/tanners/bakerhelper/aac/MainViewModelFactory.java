@@ -5,8 +5,6 @@ import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 import android.support.annotation.NonNull;
 
-import io.dev.tanners.bakerhelper.network.RecipeRepository;
-
 public class MainViewModelFactory extends ViewModelProvider.NewInstanceFactory {
 
     private RecipeRepository mRecipeRepository;

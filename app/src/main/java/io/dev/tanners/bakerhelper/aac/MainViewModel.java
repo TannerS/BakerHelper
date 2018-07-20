@@ -8,7 +8,6 @@ import android.support.annotation.NonNull;
 import java.io.IOException;
 import java.util.List;
 import io.dev.tanners.bakerhelper.model.Recipe;
-import io.dev.tanners.bakerhelper.network.RecipeRepository;
 
 public class MainViewModel extends AndroidViewModel {
     private LiveData<List<Recipe>> mRecipes;

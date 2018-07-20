@@ -3,20 +3,17 @@ package io.dev.tanners.bakerhelper.model;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
-import android.arch.persistence.room.Relation;
 import android.arch.persistence.room.TypeConverters;
 import android.os.Parcel;
 import android.os.Parcelable;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.util.ArrayList;
 import java.util.List;
+import io.dev.tanners.bakerhelper.aac.db.ListIngredientConverter;
+import io.dev.tanners.bakerhelper.aac.db.ListStepConverter;
+import io.dev.tanners.bakerhelper.aac.db.config.DBConfig;
 
-import io.dev.tanners.bakerhelper.aac.db.db.TimestampConverter;
-import io.dev.tanners.bakerhelper.aac.db.db.config.DBConfig;
-
-//@TypeConverters(TimestampConverter.class)
+@TypeConverters({ListIngredientConverter.class, ListStepConverter.class})
 @Entity(tableName = DBConfig.TABLE_NAME_RECIPES)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Recipe implements Parcelable {
@@ -25,9 +22,7 @@ public class Recipe implements Parcelable {
     private String name;
     private int servings;
     private String image;
-    @Relation(parentColumn = "id", entityColumn = "step_id")
     private List<Step> steps;
-    @Relation(parentColumn = "id", entityColumn = "ing_id")
     private List<Ingredient> ingredients;
 
     @Ignore

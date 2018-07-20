@@ -85,7 +85,7 @@ public class RecipeWidgetConfigure extends AppCompatActivity {
         RemoteViews mViews = new RemoteViews(getPackageName(),
                 R.layout.main_recipe);
 
-        mViews.setTextViewText(R.id.main_recipe_item_name, );
+//        mViews.setTextViewText(R.id.main_recipe_item_name, );
 
 
         appWidgetManager.updateAppWidget(mWidgetId, mViews);

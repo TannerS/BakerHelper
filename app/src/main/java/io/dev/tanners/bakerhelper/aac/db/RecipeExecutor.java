@@ -1,4 +1,4 @@
-package io.dev.tanners.bakerhelper.aac.db.db;
+package io.dev.tanners.bakerhelper.aac.db;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;

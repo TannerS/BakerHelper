@@ -1,5 +1,7 @@
 package io.dev.tanners.bakerhelper;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
@@ -8,26 +10,41 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
+import android.support.design.widget.Snackbar;
 import android.support.test.espresso.IdlingResource;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import io.dev.tanners.bakerhelper.aac.MainViewModel;
 import io.dev.tanners.bakerhelper.aac.MainViewModelFactory;
-import io.dev.tanners.bakerhelper.network.RecipeRepository;
+import io.dev.tanners.bakerhelper.aac.db.RecipeDao;
+import io.dev.tanners.bakerhelper.aac.db.RecipeDatabase;
+import io.dev.tanners.bakerhelper.aac.db.RecipeExecutor;
+import io.dev.tanners.bakerhelper.network.NetworkCall;
+import io.dev.tanners.bakerhelper.network.NetworkData;
+import io.dev.tanners.bakerhelper.aac.RecipeRepository;
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
 import io.dev.tanners.bakerhelper.test.IdlingResourceHelper;
 import io.dev.tanners.bakerhelper.util.ImageDisplay;
+import io.dev.tanners.bakerhelper.util.SimpleSnackBarBuilder;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
     private final static String ADAPTER_RESTORE_KEY = "RECIPE_RESTORE_KEY";
@@ -47,6 +64,11 @@ public class MainActivity extends AppCompatActivity {
             mIdlingResource.setState(false);
         }
 
+        getNetworkData();
+    }
+
+    private void finishLoadingResources()
+    {
         setupViewModel();
         determineAdapterProperties();
         setUpAdapter();
@@ -54,7 +76,20 @@ public class MainActivity extends AppCompatActivity {
         setUpToolbar();
     }
 
+    // todo https://stackoverflow.com/questions/10695152/java-pattern-for-nested-callbacks
+    private void setUpDbData(final List<Recipe> mRecipes)
+    {
+        // TODO dagger 2?
+        final RecipeDatabase mDb = RecipeDatabase.getInstance(getApplicationContext());
 
+        RecipeExecutor.getInstance().mDiskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                mDb.getRecipeDao().insertRecipes(mRecipes);
+                finishLoadingResources();
+            }
+        });
+    }
 
     @Override
     public void onRestoreInstanceState(@Nullable Bundle savedInstanceState) {
@@ -80,12 +115,59 @@ public class MainActivity extends AppCompatActivity {
                         this,
                     new MainViewModelFactory(
                             getApplication(),
-                            new RecipeRepository(this, findViewById(R.id.main_container))
+                            new RecipeRepository(this)
                     )).get(MainViewModel.class);
         } catch (IOException e) {
             e.printStackTrace();
             return;
         }
+    }
+
+    private void getNetworkData()
+    {
+//        public LiveData<List<Recipe>> getAllRecipes() throws IOException {
+//        mData = new MutableLiveData<List<Recipe>>();
+
+        ObjectMapper mMapper = new ObjectMapper();
+
+        Retrofit mRetrofit = new Retrofit.Builder()
+                .baseUrl(NetworkData.BASE_URL)
+                .addConverterFactory(JacksonConverterFactory.create(mMapper))
+                .build();
+
+        NetworkCall mNetworkCall = mRetrofit.create(NetworkCall.class);
+
+        mNetworkCall.getRecipes().enqueue(new Callback<List<Recipe>>() {
+
+            @Override
+            public void onResponse(Call<List<Recipe>> call, Response<List<Recipe>> response) {
+                if (response.isSuccessful()) {
+                    // rest of page needs this data, so lets call this here
+                    setUpDbData(response.body());
+                } else {
+                    displayMessage(findViewById(R.id.main_container), R.string.problem_with_data);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Recipe>> call, Throwable t) {
+                displayMessage(findViewById(R.id.main_container), R.string.failure_to_download_data);
+            }
+        });
+        // could be returned empty but livedata will update it when needed
+//        return mData;
+//    }
+
+
+    }
+
+    private void displayMessage(View mView, int mStringId) {
+        SimpleSnackBarBuilder.createAndDisplaySnackBar(
+                mView,
+                getString(mStringId),
+                Snackbar.LENGTH_INDEFINITE,
+                getString(R.string.loading_image_error_dismiss)
+        );
     }
 
     private synchronized void getData()
