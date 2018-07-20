@@ -1,19 +1,45 @@
 package io.dev.tanners.bakerhelper.model;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
+import android.arch.persistence.room.Relation;
+import android.arch.persistence.room.TypeConverters;
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import io.dev.tanners.bakerhelper.aac.db.db.TimestampConverter;
+import io.dev.tanners.bakerhelper.aac.db.db.config.DBConfig;
+
+//@TypeConverters(TimestampConverter.class)
+@Entity(tableName = DBConfig.TABLE_NAME_RECIPES)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Recipe implements Parcelable {
+    @PrimaryKey
     private int id;
     private String name;
     private int servings;
     private String image;
+    @Relation(parentColumn = "id", entityColumn = "step_id")
     private List<Step> steps;
+    @Relation(parentColumn = "id", entityColumn = "ing_id")
     private List<Ingredient> ingredients;
 
-    public Recipe() {
+    @Ignore
+    public Recipe() { }
+
+    @Ignore
+    public Recipe(String name, int servings, String image, List<Step> steps, List<Ingredient> ingredients) {
+        this.name = name;
+        this.servings = servings;
+        this.image = image;
+        this.steps = steps;
+        this.ingredients = ingredients;
     }
 
     public Recipe(int id, String name, int servings, String image, List<Step> steps, List<Ingredient> ingredients) {

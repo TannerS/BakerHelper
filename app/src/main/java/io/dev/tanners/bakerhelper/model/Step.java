@@ -1,19 +1,37 @@
 package io.dev.tanners.bakerhelper.model;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.dev.tanners.bakerhelper.aac.db.db.config.DBConfig;
+
+@Entity(tableName = DBConfig.TABLE_NAME_STEPS)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Step implements Parcelable {
+    @PrimaryKey
     private int id;
     private String shortDescription;
     private String description;
     private String videoUrl;
     private String thumbnailUrl;
 
+    @Ignore
     public Step() {
         // needed for parser
+    }
+
+    @Ignore
+    public Step(String shortDescription, String description, String videoUrl, String thumbnailUrl) {
+        this.shortDescription = shortDescription;
+        this.description = description;
+        this.videoUrl = videoUrl;
+        this.thumbnailUrl = thumbnailUrl;
     }
 
     public Step(int id, String shortDescription, String description, String videoUrl, String thumbnailUrl) {

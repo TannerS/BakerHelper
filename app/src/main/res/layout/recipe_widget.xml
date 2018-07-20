@@ -1,0 +1,17 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/widget_margin">
+
+
+
+    <TextView
+        android:id="@+id/main_recipe_item_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/_18sdp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="PLACE HOLDER"/>
+
+</RelativeLayout>

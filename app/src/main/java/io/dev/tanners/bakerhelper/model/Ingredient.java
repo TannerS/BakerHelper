@@ -1,18 +1,38 @@
 package io.dev.tanners.bakerhelper.model;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Ingredient implements Parcelable{
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import io.dev.tanners.bakerhelper.aac.db.db.config.DBConfig;
+
+@Entity(tableName = DBConfig.TABLE_NAME_INGREDIENTS)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Ingredient implements Parcelable {
+    private int id;
+    @PrimaryKey
     private String quantity;
     private String measure;
     private String ingredient;
 
+    @Ignore
     public Ingredient() {
         // needed for parser
     }
 
+    @Ignore
     public Ingredient(String quantity, String measure, String ingredient) {
+        this.quantity = quantity;
+        this.measure = measure;
+        this.ingredient = ingredient;
+    }
+
+    public Ingredient(int id, String quantity, String measure, String ingredient) {
+        this.id = id;
         this.quantity = quantity;
         this.measure = measure;
         this.ingredient = ingredient;

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:initialLayout="@layout/recipe_widget"
+    android:minHeight="50dp"
+    android:minWidth="50dp"
+    android:previewImage="@drawable/ic_outline_local_dining_24px"
+    android:configure="io.dev.tanners.bakerhelper.widget.RecipeWidgetConfigure"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="86400000"
+    android:widgetCategory="home_screen" />
