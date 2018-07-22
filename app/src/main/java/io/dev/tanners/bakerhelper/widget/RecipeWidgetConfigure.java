@@ -1,5 +1,6 @@
 package io.dev.tanners.bakerhelper.widget;
 
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -14,15 +15,18 @@ import android.util.Log;
 import android.widget.RemoteViews;
 import java.util.List;
 import io.dev.tanners.bakerhelper.R;
+import io.dev.tanners.bakerhelper.RecipeActivity;
 import io.dev.tanners.bakerhelper.RecipeHelper;
 import io.dev.tanners.bakerhelper.aac.db.RecipeDatabase;
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.network.RecipeLoader;
+import io.dev.tanners.bakerhelper.widget.config.GlobalConfig;
 
-import static io.dev.tanners.bakerhelper.config.GlobalConfig.WIDGET_SHARED_PREFERENCE;
-import static io.dev.tanners.bakerhelper.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_DB_ID;
-import static io.dev.tanners.bakerhelper.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_NAME;
-import static io.dev.tanners.bakerhelper.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_WIDGET_ID;
+import static io.dev.tanners.bakerhelper.widget.config.GlobalConfig.WIDGET_SHARED_PREFERENCE;
+import static io.dev.tanners.bakerhelper.widget.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_DB_ID;
+import static io.dev.tanners.bakerhelper.widget.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_NAME;
+import static io.dev.tanners.bakerhelper.widget.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_WIDGET_ID;
+import static io.dev.tanners.bakerhelper.widget.RecipeWidgetProvider.PENDING_INTENT_RECIPE_CLICK;
 
 /*
     As per docs,
@@ -69,6 +73,9 @@ public class RecipeWidgetConfigure extends RecipeHelper {
                 return new RecipeLoader(RecipeWidgetConfigure.this, null, new RecipeLoader.OnLoadInBackGroundCallBack() {
                     @Override
                     public boolean _do() {
+                        Log.i("WIDGET", "doooo");
+
+
                         if(!getRecipes())
                         {
                             // no db data, so lets do network call
@@ -76,6 +83,8 @@ public class RecipeWidgetConfigure extends RecipeHelper {
                         }
                         else
                         {
+                            Log.i("WIDGET", "GOT DATA");
+
                             return true;
                         }
                     }
@@ -90,7 +99,9 @@ public class RecipeWidgetConfigure extends RecipeHelper {
                     // no so try network to get data
                     getNetworkData();
                 }
-                else{
+                else {
+                    Log.i("WIDGET", "SET UP WIDGET");
+
                     // if data load here, else this will be called in the network callback
                     // on the next loader call
                     setUpWidgetConfiguration();
@@ -124,6 +135,8 @@ public class RecipeWidgetConfigure extends RecipeHelper {
         Bundle mExtras = mIntent.getExtras();
 
         if (mExtras != null) {
+            Log.i("WIDGET", "GET ID");
+
             mWidgetId = mExtras.getInt(
                     AppWidgetManager.EXTRA_APPWIDGET_ID,
                     AppWidgetManager.INVALID_APPWIDGET_ID);
@@ -163,13 +176,12 @@ public class RecipeWidgetConfigure extends RecipeHelper {
             this.mAdapter.updateAdapter(mRecipes);
         }
 
-
-
-
     }
 
     private void beforeSetUpAdapter()
     {
+        Log.i("WIDGET", "BEFOR E ADAPTER");
+
         mRecyclerView = findViewById(R.id.main_recipe_list);
         mGridLayoutManager = new GridLayoutManager(this, 1);
     }
@@ -177,10 +189,33 @@ public class RecipeWidgetConfigure extends RecipeHelper {
 
     private void saveWidgetInfo(Recipe mRecipe)
     {
-        SharedPreferences.Editor mEditor = getSharedPreferences(WIDGET_SHARED_PREFERENCE, MODE_PRIVATE).edit();
-        mEditor.putInt(WIDGET_SHARED_PREFERENCE_WIDGET_ID, mWidgetId);
-        mEditor.putString(WIDGET_SHARED_PREFERENCE_NAME, mRecipe.getName());
-        mEditor.putInt(WIDGET_SHARED_PREFERENCE_DB_ID, mRecipe.getId());
+        Log.i("WIDGET", "SAVE PREFERENCES");
+
+        SharedPreferences.Editor mEditor = getWidgetInfoEditor().edit();
+//        mEditor.putInt(
+//                GlobalConfig.formatKeyName(
+//                        WIDGET_SHARED_PREFERENCE_WIDGET_ID,
+//                        mWidgetId
+//                ),
+//                mWidgetId
+//        );
+
+        mEditor.putString(
+                GlobalConfig.formatKeyName(
+                        WIDGET_SHARED_PREFERENCE_NAME,
+                        mWidgetId
+                ),
+                mRecipe.getName()
+        );
+
+        mEditor.putInt(
+                GlobalConfig.formatKeyName(
+                        WIDGET_SHARED_PREFERENCE_DB_ID,
+                        mWidgetId
+                ),
+                mRecipe.getId()
+        );
+
         mEditor.apply();
     }
 
@@ -247,7 +282,6 @@ public class RecipeWidgetConfigure extends RecipeHelper {
 
         Loader<Boolean> mLoader = mLoaderManager.getLoader(mLoaderId);
 
-
         if(mLoader != null)
             mLoaderManager.initLoader(mLoaderId, null, mLoaderManagerCallback).forceLoad();
         else
@@ -260,11 +294,29 @@ public class RecipeWidgetConfigure extends RecipeHelper {
      */
     private void updateWidgetViews()
     {
+        Log.i("WIDGET", "UPDATE VIEWS");
+
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
 
         RemoteViews mViews = new RemoteViews(getPackageName(), R.layout.recipe_widget);
 
-        mViews.setTextViewText(R.id.main_recipe_item_name, getWidgetInfoEditor().getString(WIDGET_SHARED_PREFERENCE_NAME, "INVALID"));
+        mViews.setTextViewText(
+                R.id.main_recipe_item_name,
+                getWidgetInfoEditor().getString(
+                        GlobalConfig.formatKeyName(
+                                WIDGET_SHARED_PREFERENCE_NAME,
+                                mWidgetId
+                        ), "INVALID"
+                )
+        );
+
+        // create class to load
+        Intent intent = new Intent(this, RecipeActivity.class);
+        // set up pendingIntent
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, PENDING_INTENT_RECIPE_CLICK, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        // Widgets allow click handlers to only launch pending intents
+        // id is the id of the xml element in the widget layout
+        mViews.setOnClickPendingIntent(R.id.main_recipe_item_name, pendingIntent);
 
         appWidgetManager.updateAppWidget(mWidgetId, mViews);
     }
