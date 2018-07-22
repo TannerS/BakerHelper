@@ -2,6 +2,7 @@ package io.dev.tanners.bakerhelper.widget;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.LoaderManager;
@@ -19,14 +20,8 @@ import io.dev.tanners.bakerhelper.RecipeActivity;
 import io.dev.tanners.bakerhelper.RecipeHelper;
 import io.dev.tanners.bakerhelper.aac.db.RecipeDatabase;
 import io.dev.tanners.bakerhelper.model.Recipe;
-import io.dev.tanners.bakerhelper.network.RecipeLoader;
+import io.dev.tanners.bakerhelper.network.GenericLoader;
 import io.dev.tanners.bakerhelper.widget.config.GlobalConfig;
-
-import static io.dev.tanners.bakerhelper.widget.config.GlobalConfig.WIDGET_SHARED_PREFERENCE;
-import static io.dev.tanners.bakerhelper.widget.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_DB_ID;
-import static io.dev.tanners.bakerhelper.widget.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_NAME;
-import static io.dev.tanners.bakerhelper.widget.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_WIDGET_ID;
-import static io.dev.tanners.bakerhelper.widget.RecipeWidgetProvider.PENDING_INTENT_RECIPE_CLICK;
 
 /*
     As per docs,
@@ -44,7 +39,7 @@ import static io.dev.tanners.bakerhelper.widget.RecipeWidgetProvider.PENDING_INT
     This class has a flow to it....
 
     1) onCreate -> load data from database
-    2) if data exist, loadviews
+    2) if data exist, load views
     3) else, make network call
     4) after network call, populate data
     5) after db is populated, use existing list of data (data is in db but no need to call if same data already is in memory)
@@ -55,27 +50,28 @@ public class RecipeWidgetConfigure extends RecipeHelper {
     private List<Recipe> mRecipes;
     private static final int WIDGET_RECIPE_LOADER_NETWORK = 987654321;
     private static final int WIDGET_RECIPE_LOADER_DB = -987654321;
+    public static final String PENDING_INTENT_RECIPE_EXTRA = "PENDING_INTENT_RECIPE_EXTRA";
+    public static final int PENDING_INTENT_RECIPE_CLICK = 354253;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // set up global config
+//        mGlobalConfig = new GlobalConfig();
         // get widget id
         getWidgetId();
         // load loader
         // this will get recipes from database
-        // TODO check for data then network ?
         // then it will load the videos on the callback
         loadLoader(WIDGET_RECIPE_LOADER_DB, new LoaderManager.LoaderCallbacks<Boolean>() {
             @NonNull
             @Override
             public Loader<Boolean> onCreateLoader(int id, @Nullable Bundle args) {
-                return new RecipeLoader(RecipeWidgetConfigure.this, null, new RecipeLoader.OnLoadInBackGroundCallBack() {
+                return new GenericLoader(RecipeWidgetConfigure.this, null, new GenericLoader.OnLoadInBackGroundCallBack() {
                     @Override
                     public boolean _do() {
-                        Log.i("WIDGET", "doooo");
-
-
                         if(!getRecipes())
                         {
                             // no db data, so lets do network call
@@ -83,8 +79,6 @@ public class RecipeWidgetConfigure extends RecipeHelper {
                         }
                         else
                         {
-                            Log.i("WIDGET", "GOT DATA");
-
                             return true;
                         }
                     }
@@ -100,8 +94,6 @@ public class RecipeWidgetConfigure extends RecipeHelper {
                     getNetworkData();
                 }
                 else {
-                    Log.i("WIDGET", "SET UP WIDGET");
-
                     // if data load here, else this will be called in the network callback
                     // on the next loader call
                     setUpWidgetConfiguration();
@@ -135,8 +127,6 @@ public class RecipeWidgetConfigure extends RecipeHelper {
         Bundle mExtras = mIntent.getExtras();
 
         if (mExtras != null) {
-            Log.i("WIDGET", "GET ID");
-
             mWidgetId = mExtras.getInt(
                     AppWidgetManager.EXTRA_APPWIDGET_ID,
                     AppWidgetManager.INVALID_APPWIDGET_ID);
@@ -156,7 +146,6 @@ public class RecipeWidgetConfigure extends RecipeHelper {
      */
     private void setUpWidgetConfiguration()
     {
-
         setUpToolbar();
         beforeSetUpAdapter();
 
@@ -164,14 +153,19 @@ public class RecipeWidgetConfigure extends RecipeHelper {
             @Override
             public void onClickHelper(Recipe mRecipe) {
                 saveWidgetInfo(mRecipe);
-                updateWidgetViews();
+
+                RecipeWidgetProvider.updateAppWidget(
+                        RecipeWidgetConfigure.this,
+                        AppWidgetManager.getInstance(RecipeWidgetConfigure.this),
+                        mWidgetId
+                );
+//                updateWidgetViews();
                 // widget should be set up and this should close it with selected saved
                 setActivityResult();
             }
         });
 
         if(this.mAdapter != null) {
-            Log.i("ADAPTER", "IS NULL");
             // set adapter data
             this.mAdapter.updateAdapter(mRecipes);
         }
@@ -180,8 +174,6 @@ public class RecipeWidgetConfigure extends RecipeHelper {
 
     private void beforeSetUpAdapter()
     {
-        Log.i("WIDGET", "BEFOR E ADAPTER");
-
         mRecyclerView = findViewById(R.id.main_recipe_list);
         mGridLayoutManager = new GridLayoutManager(this, 1);
     }
@@ -189,30 +181,21 @@ public class RecipeWidgetConfigure extends RecipeHelper {
 
     private void saveWidgetInfo(Recipe mRecipe)
     {
-        Log.i("WIDGET", "SAVE PREFERENCES");
-
         SharedPreferences.Editor mEditor = getWidgetInfoEditor().edit();
+        // this will change on every widget click,
+        // this is used to tell the activity what the id is
 //        mEditor.putInt(
-//                GlobalConfig.formatKeyName(
-//                        WIDGET_SHARED_PREFERENCE_WIDGET_ID,
-//                        mWidgetId
-//                ),
+//                mGlobalConfig.getWidgetIdKey(),
 //                mWidgetId
 //        );
 
         mEditor.putString(
-                GlobalConfig.formatKeyName(
-                        WIDGET_SHARED_PREFERENCE_NAME,
-                        mWidgetId
-                ),
+                GlobalConfig.getWidgetSharedPreferenceNameKey(mWidgetId),
                 mRecipe.getName()
         );
 
         mEditor.putInt(
-                GlobalConfig.formatKeyName(
-                        WIDGET_SHARED_PREFERENCE_DB_ID,
-                        mWidgetId
-                ),
+                GlobalConfig.getWidgetSharedPreferenceDbIdKey(mWidgetId),
                 mRecipe.getId()
         );
 
@@ -221,7 +204,7 @@ public class RecipeWidgetConfigure extends RecipeHelper {
 
     private SharedPreferences getWidgetInfoEditor()
     {
-        return getSharedPreferences(WIDGET_SHARED_PREFERENCE, MODE_PRIVATE);
+        return getSharedPreferences(GlobalConfig.getWidgetSharedPreferenceKey(mWidgetId), MODE_PRIVATE);
     }
 
     /**
@@ -235,7 +218,7 @@ public class RecipeWidgetConfigure extends RecipeHelper {
             @NonNull
             @Override
             public Loader<Boolean> onCreateLoader(int id, @Nullable Bundle args) {
-                return new RecipeLoader(RecipeWidgetConfigure.this, null, new RecipeLoader.OnLoadInBackGroundCallBack() {
+                return new GenericLoader(RecipeWidgetConfigure.this, null, new GenericLoader.OnLoadInBackGroundCallBack() {
                     @Override
                     public boolean _do() {
                         if(mRecipes != null || mRecipes.size() == 0)
@@ -289,37 +272,36 @@ public class RecipeWidgetConfigure extends RecipeHelper {
     }
 
 
-    /**
-     * Update the widget's view since this has to be done manually
-     */
-    private void updateWidgetViews()
-    {
-        Log.i("WIDGET", "UPDATE VIEWS");
-
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
-
-        RemoteViews mViews = new RemoteViews(getPackageName(), R.layout.recipe_widget);
-
-        mViews.setTextViewText(
-                R.id.main_recipe_item_name,
-                getWidgetInfoEditor().getString(
-                        GlobalConfig.formatKeyName(
-                                WIDGET_SHARED_PREFERENCE_NAME,
-                                mWidgetId
-                        ), "INVALID"
-                )
-        );
-
-        // create class to load
-        Intent intent = new Intent(this, RecipeActivity.class);
-        // set up pendingIntent
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, PENDING_INTENT_RECIPE_CLICK, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        // Widgets allow click handlers to only launch pending intents
-        // id is the id of the xml element in the widget layout
-        mViews.setOnClickPendingIntent(R.id.main_recipe_item_name, pendingIntent);
-
-        appWidgetManager.updateAppWidget(mWidgetId, mViews);
-    }
+//    /**
+//     * Update the widget's view since this has to be done manually
+//     */
+//    private void updateWidgetViews()
+//    {
+//        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
+//
+//        RemoteViews mViews = new RemoteViews(getPackageName(), R.layout.recipe_widget);
+//
+//        mViews.setTextViewText(
+//                R.id.main_recipe_item_name,
+//                getWidgetInfoEditor().getString(
+//                        GlobalConfig.getWidgetSharedPreferenceNameKey(
+//                                mWidgetId
+//                        ), "INVALID"
+//                )
+//        );
+//        // create class to load
+//        Intent intent = new Intent(this, RecipeActivity.class);
+//        // pass in widget id to the activity which will be used to get proper widget id
+//        // to b used to get the proper wiget data based off that id
+//        intent.putExtra(PENDING_INTENT_RECIPE_EXTRA, mWidgetId);
+//        // set up pendingIntent
+//        PendingIntent pendingIntent = PendingIntent.getActivity(this, PENDING_INTENT_RECIPE_CLICK + mWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//        // Widgets allow click handlers to only launch pending intents
+//        // id is the id of the xml element in the widget layout
+//        mViews.setOnClickPendingIntent(R.id.main_recipe_item_name, pendingIntent);
+//
+//        appWidgetManager.updateAppWidget(mWidgetId, mViews);
+//    }
 
     private void setUpToolbar()
     {
@@ -328,6 +310,5 @@ public class RecipeWidgetConfigure extends RecipeHelper {
 
         setSupportActionBar(mToolbar);
     }
-
 }
 

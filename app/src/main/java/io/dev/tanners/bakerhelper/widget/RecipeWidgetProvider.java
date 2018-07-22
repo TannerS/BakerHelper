@@ -9,17 +9,10 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
-
-import io.dev.tanners.bakerhelper.MainActivity;
 import io.dev.tanners.bakerhelper.R;
 import io.dev.tanners.bakerhelper.RecipeActivity;
 import io.dev.tanners.bakerhelper.widget.config.GlobalConfig;
-
 import static android.content.Context.MODE_PRIVATE;
-import static io.dev.tanners.bakerhelper.widget.config.GlobalConfig.WIDGET_SHARED_PREFERENCE;
-import static io.dev.tanners.bakerhelper.widget.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_DB_ID;
-import static io.dev.tanners.bakerhelper.widget.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_NAME;
-import static io.dev.tanners.bakerhelper.widget.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_WIDGET_ID;
 
 /**
  * A convenience class to aid in implementing an AppWidget provider.
@@ -28,9 +21,28 @@ import static io.dev.tanners.bakerhelper.widget.config.GlobalConfig.WIDGET_SHARE
  * that is received in onReceive(Context,Intent), and calls hook methods with the received extras.
  */
 public class RecipeWidgetProvider extends AppWidgetProvider {
-    public static final int PENDING_INTENT_RECIPE_CLICK = 2;
+    public static final String PENDING_INTENT_RECIPE_EXTRA_CONFIG = "PENDING_INTENT_RECIPE_EXTRA_CONFIG";
+    public static final int PENDING_INTENT_RECIPE_CLICK_CONFIG = 56432;
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
+
+    Log.i("WIDGET", String.valueOf(appWidgetId));
+
+
+//        SharedPreferences.Editor mEditor = context.getSharedPreferences(
+//                GlobalConfig.WIDGET_SHARED_PREFERENCE,
+//                MODE_PRIVATE
+//        ).edit();
+//
+//        GlobalConfig mGlobalConfig = new GlobalConfig();
+//
+//        mEditor.putInt(
+//                mGlobalConfig.getWidgetIdKey(),
+//                appWidgetId
+//        );
+//
+//        mEditor.apply();
+
 
 
 
@@ -47,14 +59,6 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
 //        } else {
 //            mRemoteViews = getListViewLayout(context);
 //        }
-
-
-
-
-
-
-
-
 
 
         // Instruct the widget manager to update the widget
@@ -100,17 +104,17 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
         // this will have all the views for the layut
         RemoteViews mRemoteViews = new RemoteViews(mContext.getPackageName(), R.layout.recipe_widget);
 
-        SharedPreferences mSharedPreferences = mContext.getSharedPreferences(WIDGET_SHARED_PREFERENCE, MODE_PRIVATE);
+        SharedPreferences mSharedPreferences = mContext.getSharedPreferences(GlobalConfig.getWidgetSharedPreferenceKey(appWidgetId), MODE_PRIVATE);
 
+        String mRecipeName = mSharedPreferences.getString(
+                GlobalConfig.getWidgetSharedPreferenceNameKey(appWidgetId),
+                "INVALID"
+        );
+
+        // load text based off
         mRemoteViews.setTextViewText(
                 R.id.main_recipe_item_name,
-                mSharedPreferences.getString(
-                        GlobalConfig.formatKeyName(
-                                WIDGET_SHARED_PREFERENCE_NAME,
-                                appWidgetId
-                        ),
-                        "INVALID"
-                )
+                mRecipeName
         );
 
         /*
@@ -118,56 +122,38 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
          * for single recipe view
          * NOTE: pending intent can also open up a broadcast, service or activity. our use will be an example
          */
-        // create class to load
+        // create intent to load
         Intent intent = new Intent(mContext, RecipeActivity.class);
+        // pass in widget id to the activity which will be used to get proper widget id
+        // to b used to get the proper wiget data based off that id
+        intent.putExtra(PENDING_INTENT_RECIPE_EXTRA_CONFIG, appWidgetId);
         // set up pendingIntent
-        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, PENDING_INTENT_RECIPE_CLICK, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, PENDING_INTENT_RECIPE_CLICK_CONFIG + appWidgetId, intent, PendingIntent.FLAG_CANCEL_CURRENT);
         // Widgets allow click handlers to only launch pending intents
         // id is the id of the xml element in the widget layout
         mRemoteViews.setOnClickPendingIntent(R.id.main_recipe_item_name, pendingIntent);
-
+        // return views
         return mRemoteViews;
     }
 
 //    /**
 //     * This is the widget's way off implement 'onClick'
-//     * for single recipe view
+//     * for gridview item's recipe view
 //     * NOTE: pending intent can also open up a broadcast, service or activity. our use will be an example
 //     *
 //     * @param mContext
 //     * @param mRemoteViews
 //     */
-//    private static RemoteViews createSinglePendingIntent(Context mContext, RemoteViews mRemoteViews)
+//    private void createListPendingIntent(Context mContext, RemoteViews mRemoteViews)
 //    {
 //        // create class to load
 //        Intent intent = new Intent(mContext, MainActivity.class);
 //        // set up pendingIntent
 //        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, PENDING_INTENT_RECIPE_CLICK, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 //        // Widgets allow click handlers to only launch pending intents
-//        // id is the id of the xml element in the widget layout
+//        // id is the id from the xml element in the widget layout
 //        mRemoteViews.setOnClickPendingIntent(R.id.main_recipe_item_name, pendingIntent);
-//
-//        return mRemoteViews;
 //    }
-
-    /**
-     * This is the widget's way off implement 'onClick'
-     * for gridview item's recipe view
-     * NOTE: pending intent can also open up a broadcast, service or activity. our use will be an example
-     *
-     * @param mContext
-     * @param mRemoteViews
-     */
-    private void createListPendingIntent(Context mContext, RemoteViews mRemoteViews)
-    {
-        // create class to load
-        Intent intent = new Intent(mContext, MainActivity.class);
-        // set up pendingIntent
-        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, PENDING_INTENT_RECIPE_CLICK, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        // Widgets allow click handlers to only launch pending intents
-        // id is the id from the xml element in the widget layout
-        mRemoteViews.setOnClickPendingIntent(R.id.main_recipe_item_name, pendingIntent);
-    }
 
     /**
      * This happens at every update interval (which is specified in recipe_widget_info),
@@ -180,10 +166,6 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
      */
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-
-        Log.i("WIDGET", "onUpdate");
-
-
         // There may be multiple widgets active, so update all of them
         // This will loop every widget instance
         for (int appWidgetId : appWidgetIds) {
@@ -191,9 +173,6 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
     }
-
-
-
 
     @Override
     public void onEnabled(Context context) {
@@ -204,7 +183,6 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
     }
-
 
     @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager, int appWidgetId, Bundle newOptions) {

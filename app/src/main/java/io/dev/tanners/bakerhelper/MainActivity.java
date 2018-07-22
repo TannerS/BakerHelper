@@ -8,42 +8,21 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
-import android.support.design.widget.Snackbar;
 import android.support.test.espresso.IdlingResource;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.List;
 import io.dev.tanners.bakerhelper.aac.MainViewModel;
 import io.dev.tanners.bakerhelper.aac.MainViewModelFactory;
 import io.dev.tanners.bakerhelper.aac.db.RecipeDatabase;
-import io.dev.tanners.bakerhelper.network.NetworkCall;
-import io.dev.tanners.bakerhelper.network.NetworkData;
 import io.dev.tanners.bakerhelper.aac.RecipeRepository;
 import io.dev.tanners.bakerhelper.model.Recipe;
-import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
-import io.dev.tanners.bakerhelper.network.RecipeLoader;
+import io.dev.tanners.bakerhelper.network.GenericLoader;
 import io.dev.tanners.bakerhelper.test.IdlingResourceHelper;
-import io.dev.tanners.bakerhelper.util.ImageDisplay;
-import io.dev.tanners.bakerhelper.util.SimpleSnackBarBuilder;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 // TODO error checking
 // TODO WAIT for network, pull db if none, else make network call
@@ -64,12 +43,8 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
  */
 public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCallbacks<Boolean> {
     private final static String ADAPTER_RESTORE_KEY = "RECIPE_RESTORE_KEY";
-//    private RecipeAdapter mAdapter;
-//    private GridLayoutManager mGridLayoutManager;
-//    private RecyclerView mRecyclerView;
     private MainViewModel mMainViewModel;
     private IdlingResourceHelper mIdlingResource;
-//    private List<Recipe> mRecipes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +79,9 @@ public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCa
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable(ADAPTER_RESTORE_KEY, mRecyclerView.getLayoutManager().onSaveInstanceState());
+
+        if(mRecyclerView != null)
+            outState.putParcelable(ADAPTER_RESTORE_KEY, mRecyclerView.getLayoutManager().onSaveInstanceState());
     }
 
     private void setupViewModel() {
@@ -177,13 +154,9 @@ public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCa
     @NonNull
     @Override
     public Loader<Boolean> onCreateLoader(int id, @Nullable Bundle args) {
-        return new RecipeLoader(this, args, new RecipeLoader.OnLoadInBackGroundCallBack() {
+        return new GenericLoader(this, args, new GenericLoader.OnLoadInBackGroundCallBack() {
             @Override
             public boolean _do() {
-
-                Log.i("ADAPTER", "DOOOOO");
-
-
                 // get data for db
                 setUpDbData();
                 // view model will call our db, so db needed to be populated prior
@@ -208,8 +181,6 @@ public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCa
                 startActivity(intent);
             }
         });
-
-
 
         getData();
         setUpToolbar();

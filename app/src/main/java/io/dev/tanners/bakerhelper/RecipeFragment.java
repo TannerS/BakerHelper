@@ -1,15 +1,16 @@
 package io.dev.tanners.bakerhelper;
 
+import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.VisibleForTesting;
-import android.support.test.espresso.IdlingResource;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,17 +21,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import java.util.List;
+import io.dev.tanners.bakerhelper.aac.db.RecipeDatabase;
 import io.dev.tanners.bakerhelper.model.Ingredient;
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.model.Step;
 import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
-import io.dev.tanners.bakerhelper.test.IdlingResourceHelper;
+import io.dev.tanners.bakerhelper.network.GenericLoader;
+import io.dev.tanners.bakerhelper.support.DataUtil;
+import io.dev.tanners.bakerhelper.widget.config.GlobalConfig;
+import static android.content.Context.MODE_PRIVATE;
+import static io.dev.tanners.bakerhelper.widget.RecipeWidgetConfigure.PENDING_INTENT_RECIPE_EXTRA;
+import static io.dev.tanners.bakerhelper.widget.RecipeWidgetProvider.PENDING_INTENT_RECIPE_EXTRA_CONFIG;
 
-public class RecipeFragment extends Fragment {
-    public final static String RECIPE_DATA = "DATA_FOR_RECIPE";
+public class RecipeFragment extends Fragment implements LoaderManager.LoaderCallbacks<Boolean>, DataUtil {
+    private final static int RECIPE_FRAGMENT_LOADER = 2468;
+//    public final static String RECIPE_DATA = "DATA_FOR_RECIPE";
     public final static String STEP_ADAPTER_POS = "POS_OF_STEP";
     public final static String ING_ADAPTER_POS = "POS_OF_ING";
-
     private Recipe mRecipe;
     private RecyclerView mStepRecyclerView;
     private RecyclerView mIngredientRecyclerView;
@@ -38,6 +45,10 @@ public class RecipeFragment extends Fragment {
     // Define a new interface OnImageClickListener that triggers a callback in the host activity
     private FragmentData mCallback;
     private Context mContext;
+    // state to mark if the data being passed in is a newIntent
+    private boolean newIntent = false;
+    // the intent that the newIntentbool uses
+    private Intent newDataIntent;
 
     public RecipeFragment() {
         // Required empty public constructor
@@ -46,6 +57,21 @@ public class RecipeFragment extends Fragment {
     public static RecipeFragment newInstance() {
         return new RecipeFragment();
     }
+
+    /**
+     * Load new data from activity due to pending intent from widget
+     */
+    @Override
+    public void loadNewData(Intent mIntent) {
+        Log.d("WIDGET", "NEW LOAD");
+        // clar current data to trigger update
+        mRecipe = null;
+        newIntent = true;
+        this.newDataIntent = mIntent;
+
+        loadLoader();
+    }
+
 
     // interface that calls the host's method that implements this interface
     public interface FragmentData {
@@ -66,11 +92,53 @@ public class RecipeFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        setUpFragment();
+//        // get data from activity
+//        if(mCallback != null) {
+//            mRecipe = mCallback.getData();
+//
+//            if(mRecipe != null)
+//                loadResources();
+//            else
+//            {
+//                // if null, could mean data
+//                // is passed via pref from widget
+//                loadLoader();
+//            }
+//        }
+    }
+
+    private void setUpFragment()
+    {
         // get data from activity
         if(mCallback != null) {
             mRecipe = mCallback.getData();
-        }
 
+            if(mRecipe != null)
+                loadResources();
+            else
+            {
+                // if null, could mean data
+                // is passed via pref from widget
+                loadLoader();
+            }
+        }
+    }
+
+    private void loadLoader()
+    {
+        LoaderManager mLoaderManager = getActivity().getSupportLoaderManager();
+
+        Loader<Boolean> mLoader = mLoaderManager.getLoader(RECIPE_FRAGMENT_LOADER);
+        // check loader instance
+        if(mLoader != null)
+            mLoaderManager.initLoader(RECIPE_FRAGMENT_LOADER, null, this).forceLoad();
+        else
+            mLoaderManager.restartLoader(RECIPE_FRAGMENT_LOADER, null, this).forceLoad();
+    }
+
+    private void loadResources()
+    {
         if(mRecipe != null)
         {
             if(mRecipe.getIngredients() != null)
@@ -132,7 +200,6 @@ public class RecipeFragment extends Fragment {
             );
         }
     }
-
 
     private void setUpToolbar()
     {
@@ -292,5 +359,73 @@ public class RecipeFragment extends Fragment {
     public interface OnClicked {
         public void stepAction(Step mStep);
     }
+
+    private SharedPreferences getSharedPreferences(int mWidgetId)
+    {
+        return getActivity().getSharedPreferences(
+                GlobalConfig.getWidgetSharedPreferenceKey(mWidgetId),
+                MODE_PRIVATE
+        );
+    }
+
+    @NonNull
+    @Override
+    public Loader<Boolean> onCreateLoader(int id, @Nullable Bundle args) {
+        return new GenericLoader(mContext, args, new GenericLoader.OnLoadInBackGroundCallBack() {
+            @Override
+            public boolean _do() {
+                // needed a way to pass in widget id to this fragment, so used the intent
+                // this id is used for the shared prefs to get proper widget data
+                // since the configure class and provider both have the same way to pass intent
+                // we check for both ways, this is a fix where the pending intents were getting confused
+                // with one another
+                if(newIntent)
+                {
+                    // get widget id from passed in intent, not old acitvity intent
+                    int mWidgetId = newDataIntent.getIntExtra(PENDING_INTENT_RECIPE_EXTRA_CONFIG, -1);
+                    loadRecipeDataFromWidget(mWidgetId);
+                    newIntent = false;
+                    return true;
+                }
+                if(getActivity().getIntent().hasExtra(PENDING_INTENT_RECIPE_EXTRA)) {
+                    int mWidgetId = getActivity().getIntent().getIntExtra(PENDING_INTENT_RECIPE_EXTRA, -1);
+                    loadRecipeDataFromWidget(mWidgetId);
+                    return true;
+                }
+                else if(getActivity().getIntent().hasExtra(PENDING_INTENT_RECIPE_EXTRA_CONFIG)) {
+                    int mWidgetId = getActivity().getIntent().getIntExtra(PENDING_INTENT_RECIPE_EXTRA_CONFIG, -1);
+                    loadRecipeDataFromWidget(mWidgetId);
+                    return true;
+                }
+                return false;
+            }
+        });
+    }
+
+    private void loadRecipeDataFromWidget(int mWidgetId)
+    {
+        final RecipeDatabase mDb = RecipeDatabase.getInstance(getContext());
+
+        // use the widget id as part of the key to get the proper recipe
+        mRecipe = mDb.getRecipeDao().loadRecipeById(
+                getSharedPreferences(mWidgetId).getInt(
+                        GlobalConfig.getWidgetSharedPreferenceDbIdKey(mWidgetId),
+                        AppWidgetManager.INVALID_APPWIDGET_ID
+                )
+        );
+    }
+
+    @Override
+    public void onLoadFinished(@NonNull Loader<Boolean> loader, Boolean data) {
+        loadResources();
+    }
+
+    @Override
+    public void onLoaderReset(@NonNull Loader<Boolean> loader) {
+
+    }
+
+
+
 
 }
