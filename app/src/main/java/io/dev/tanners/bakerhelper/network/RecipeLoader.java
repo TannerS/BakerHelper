@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.AsyncTaskLoader;
+import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -26,6 +27,9 @@ public class RecipeLoader extends AsyncTaskLoader<Boolean> {
     @Nullable
     @Override
     public Boolean loadInBackground() {
+        Log.i("ADAPTER", "loadonbackground");
+
+
         return mCallback._do();
     }
 

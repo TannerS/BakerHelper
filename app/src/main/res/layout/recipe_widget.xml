@@ -5,8 +5,6 @@
     android:layout_height="match_parent"
     android:padding="@dimen/widget_margin">
 
-
-
     <TextView
         android:id="@+id/main_recipe_item_name"
         android:layout_width="match_parent"

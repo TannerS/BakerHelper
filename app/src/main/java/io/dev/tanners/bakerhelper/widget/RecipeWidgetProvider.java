@@ -30,7 +30,7 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
 
 
 
-
+        Log.i("WIDGET", "updateAppWidget");
 
 
 
@@ -158,6 +158,10 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
      */
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+
+        Log.i("WIDGET", "onUpdate");
+
+
         // There may be multiple widgets active, so update all of them
         // This will loop every widget instance
         for (int appWidgetId : appWidgetIds) {

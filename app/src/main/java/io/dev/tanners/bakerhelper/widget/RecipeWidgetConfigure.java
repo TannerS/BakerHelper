@@ -2,33 +2,27 @@ package io.dev.tanners.bakerhelper.widget;
 
 import android.appwidget.AppWidgetManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.app.NotificationCompatSideChannelService;
 import android.support.v4.content.Loader;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.widget.RemoteViews;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.util.List;
-
 import io.dev.tanners.bakerhelper.R;
 import io.dev.tanners.bakerhelper.RecipeHelper;
 import io.dev.tanners.bakerhelper.aac.db.RecipeDatabase;
-import io.dev.tanners.bakerhelper.aac.db.RecipeExecutor;
 import io.dev.tanners.bakerhelper.model.Recipe;
-import io.dev.tanners.bakerhelper.network.NetworkCall;
-import io.dev.tanners.bakerhelper.network.NetworkData;
 import io.dev.tanners.bakerhelper.network.RecipeLoader;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+
+import static io.dev.tanners.bakerhelper.config.GlobalConfig.WIDGET_SHARED_PREFERENCE;
+import static io.dev.tanners.bakerhelper.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_DB_ID;
+import static io.dev.tanners.bakerhelper.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_NAME;
+import static io.dev.tanners.bakerhelper.config.GlobalConfig.WIDGET_SHARED_PREFERENCE_WIDGET_ID;
 
 /*
     As per docs,
@@ -61,6 +55,7 @@ public class RecipeWidgetConfigure extends RecipeHelper {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
         // get widget id
         getWidgetId();
         // load loader
@@ -148,8 +143,50 @@ public class RecipeWidgetConfigure extends RecipeHelper {
      */
     private void setUpWidgetConfiguration()
     {
-        updateWidgetViews();
-        setActivityResult();
+
+        setUpToolbar();
+        beforeSetUpAdapter();
+
+        setUpAdapter(this, new RecipeViewHolderHelper() {
+            @Override
+            public void onClickHelper(Recipe mRecipe) {
+                saveWidgetInfo(mRecipe);
+                updateWidgetViews();
+                // widget should be set up and this should close it with selected saved
+                setActivityResult();
+            }
+        });
+
+        if(this.mAdapter != null) {
+            Log.i("ADAPTER", "IS NULL");
+            // set adapter data
+            this.mAdapter.updateAdapter(mRecipes);
+        }
+
+
+
+
+    }
+
+    private void beforeSetUpAdapter()
+    {
+        mRecyclerView = findViewById(R.id.main_recipe_list);
+        mGridLayoutManager = new GridLayoutManager(this, 1);
+    }
+
+
+    private void saveWidgetInfo(Recipe mRecipe)
+    {
+        SharedPreferences.Editor mEditor = getSharedPreferences(WIDGET_SHARED_PREFERENCE, MODE_PRIVATE).edit();
+        mEditor.putInt(WIDGET_SHARED_PREFERENCE_WIDGET_ID, mWidgetId);
+        mEditor.putString(WIDGET_SHARED_PREFERENCE_NAME, mRecipe.getName());
+        mEditor.putInt(WIDGET_SHARED_PREFERENCE_DB_ID, mRecipe.getId());
+        mEditor.apply();
+    }
+
+    private SharedPreferences getWidgetInfoEditor()
+    {
+        return getSharedPreferences(WIDGET_SHARED_PREFERENCE, MODE_PRIVATE);
     }
 
     /**
@@ -225,14 +262,19 @@ public class RecipeWidgetConfigure extends RecipeHelper {
     {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
 
-        RemoteViews mViews = new RemoteViews(getPackageName(),
-                R.layout.main_recipe);
+        RemoteViews mViews = new RemoteViews(getPackageName(), R.layout.recipe_widget);
 
-        //TODO load list that memics main actiivty
-//        mViews.setTextViewText(R.id.main_recipe_item_name, );
-
+        mViews.setTextViewText(R.id.main_recipe_item_name, getWidgetInfoEditor().getString(WIDGET_SHARED_PREFERENCE_NAME, "INVALID"));
 
         appWidgetManager.updateAppWidget(mWidgetId, mViews);
+    }
+
+    private void setUpToolbar()
+    {
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.main_toolbar);
+        mToolbar.setTitle(getString(R.string.widget_toolbar_text));
+
+        setSupportActionBar(mToolbar);
     }
 
 }

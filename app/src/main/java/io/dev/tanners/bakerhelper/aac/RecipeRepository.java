@@ -4,6 +4,7 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.View;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,19 +31,22 @@ public class RecipeRepository {
     }
 
     public LiveData<List<Recipe>> getAllRecipes() throws IOException {
-//        mData = new MutableLiveData<List<Recipe>>();
-//         final LiveData<List<Recipe>> mData = new MutableLiveData<List<Recipe>>();
          mData = new MutableLiveData<List<Recipe>>();
-//        LiveData<List<Recipe>> mData = new LiveData<List<Recipe>>();
 
-//         TODO dagger 2 ?
-        final RecipeDatabase mDb =   RecipeDatabase.getInstance(mContext);
+        final RecipeDatabase mDb = RecipeDatabase.getInstance(mContext);
+        Log.i("ADAPTER", "REPO");
+
+
 
         RecipeExecutor.getInstance().mDiskIO().execute(new Runnable() {
             @Override
             public void run() {
+
                 // https://stackoverflow.com/a/44293595/2449314
                 mData.postValue(mDb.getRecipeDao().loadAllRecipes());
+
+
+
             }
         });
 

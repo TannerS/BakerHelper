@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,9 +64,9 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
  */
 public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCallbacks<Boolean> {
     private final static String ADAPTER_RESTORE_KEY = "RECIPE_RESTORE_KEY";
-    private RecipeAdapter mAdapter;
-    private GridLayoutManager mGridLayoutManager;
-    private RecyclerView mRecyclerView;
+//    private RecipeAdapter mAdapter;
+//    private GridLayoutManager mGridLayoutManager;
+//    private RecyclerView mRecyclerView;
     private MainViewModel mMainViewModel;
     private IdlingResourceHelper mIdlingResource;
 //    private List<Recipe> mRecipes;
@@ -134,15 +135,6 @@ public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCa
             mLoaderManager.restartLoader(RECIPE_LOADER, null, this).forceLoad();
     }
 
-//    private void displayMessage(View mView, int mStringId) {
-//        SimpleSnackBarBuilder.createAndDisplaySnackBar(
-//                mView,
-//                getString(mStringId),
-//                Snackbar.LENGTH_INDEFINITE,
-//                getString(R.string.loading_image_error_dismiss)
-//        );
-//    }
-
     private synchronized void getData()
     {
         mMainViewModel.getmRecipes().observe(this, new Observer<List<Recipe>>() {
@@ -160,20 +152,6 @@ public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCa
         });
     }
 
-    private void setUpAdapter()
-    {
-        if(mGridLayoutManager != null && mRecyclerView != null) {
-            // smooth scrolling
-            mGridLayoutManager.setSmoothScrollbarEnabled(true);
-            // set up with layout manager
-            mRecyclerView.setLayoutManager(mGridLayoutManager);
-            // create adapter
-            mAdapter = new RecipeAdapter();
-            // set adapter
-            mRecyclerView.setAdapter(mAdapter);
-        }
-    }
-
     private void determineAdapterProperties()
     {
         mRecyclerView = findViewById(R.id.main_recipe_list_wide);
@@ -187,7 +165,6 @@ public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCa
             mRecyclerView = findViewById(R.id.main_recipe_list);
             mGridLayoutManager = new GridLayoutManager(this, 1);
         }
-
     }
 
     private void setUpToolbar()
@@ -197,22 +174,16 @@ public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCa
         setSupportActionBar(mToolbar);
     }
 
-//    @Override
-//    public boolean _do() {
-//        // get data for db
-//        setUpDbData();
-//        // view model will call our db, so db needed to be populated prior
-//        setupViewModel();
-//
-//        return true;
-//    }
-
     @NonNull
     @Override
     public Loader<Boolean> onCreateLoader(int id, @Nullable Bundle args) {
         return new RecipeLoader(this, args, new RecipeLoader.OnLoadInBackGroundCallBack() {
             @Override
             public boolean _do() {
+
+                Log.i("ADAPTER", "DOOOOO");
+
+
                 // get data for db
                 setUpDbData();
                 // view model will call our db, so db needed to be populated prior
@@ -226,7 +197,20 @@ public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCa
     @Override
     public void onLoadFinished(@NonNull Loader<Boolean> loader, Boolean data) {
         determineAdapterProperties();
-        setUpAdapter();
+
+        setUpAdapter(this, new RecipeViewHolderHelper() {
+            @Override
+            public void onClickHelper(Recipe mRecipe) {
+                Intent intent = new Intent(MainActivity.this, RecipeActivity.class);
+
+                intent.putExtra(RecipeActivity.RECIPE_DATA, mRecipe);
+
+                startActivity(intent);
+            }
+        });
+
+
+
         getData();
         setUpToolbar();
     }
@@ -234,59 +218,6 @@ public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCa
     @Override
     public void onLoaderReset(@NonNull Loader<Boolean> loader) {
 
-    }
-
-    protected class RecipeAdapter extends BaseBakerAdapter<Recipe>
-    {
-        @NonNull
-        @Override
-        public RecipeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.main_recipe_item, parent, false);
-            return new RecipeViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-            RecipeViewHolder mHolder = (RecipeViewHolder) holder;
-
-            Recipe mRecipe = (Recipe) mBase.get(position);
-            mHolder.mName.setText(mRecipe.getName());
-            // for this example, all images are null
-            if(mRecipe.getImage() != null || mRecipe.getImage().length() > 0) {
-                ImageDisplay.loadImage(
-                        (MainActivity.this),
-                        // no image url in actually data
-                        // just here if ever updated
-                        mRecipe.getImage(),
-                        R.drawable.ic_outline_error_outline_24px,
-                        mHolder.mThumbnail
-                );
-            }
-        }
-
-        public class RecipeViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-            public TextView mName;
-            public ImageView mThumbnail;
-
-            public RecipeViewHolder(View view) {
-                super(view);
-                view.setOnClickListener(this);
-                mName = view.findViewById(R.id.main_recipe_item_name);
-                mThumbnail = view.findViewById(R.id.main_recipe_item_image);
-                mName.setClipToOutline(true);
-            }
-
-            @Override
-            public void onClick(View v) {
-                Recipe mRecipe = (Recipe) mBase.get(getAdapterPosition());
-
-                Intent intent = new Intent(MainActivity.this, RecipeActivity.class);
-
-                intent.putExtra(RecipeActivity.RECIPE_DATA, mRecipe);
-
-                startActivity(intent);
-            }
-        }
     }
 
     @VisibleForTesting
