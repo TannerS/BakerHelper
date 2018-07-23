@@ -14,6 +14,12 @@ public abstract class RecipeDatabase extends RoomDatabase {
     private static final Object LOCK = new Object();
     private static RecipeDatabase mInstance;
 
+    /**
+     * get instance of the data base
+     *
+     * @param context
+     * @return
+     */
     public static RecipeDatabase getInstance(Context context) {
         // check if instance already exist
         if (mInstance == null) {
@@ -35,6 +41,11 @@ public abstract class RecipeDatabase extends RoomDatabase {
         return mInstance;
     }
 
+    /**
+     * recipe dao
+     *
+     * @return
+     */
     public abstract RecipeDao getRecipeDao();
 
 }

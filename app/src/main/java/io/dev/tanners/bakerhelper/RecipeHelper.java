@@ -1,15 +1,10 @@
 package io.dev.tanners.bakerhelper;
 
-import android.content.Context;
-import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +18,7 @@ import java.util.List;
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
 import io.dev.tanners.bakerhelper.network.NetworkCall;
-import io.dev.tanners.bakerhelper.network.NetworkData;
+import io.dev.tanners.bakerhelper.network.NetworkConfig;
 import io.dev.tanners.bakerhelper.util.ImageDisplay;
 import io.dev.tanners.bakerhelper.util.SimpleSnackBarBuilder;
 import retrofit2.Call;
@@ -50,35 +45,44 @@ public abstract class RecipeHelper extends AppCompatActivity
     protected void getNetworkData()
     {
         ObjectMapper mMapper = new ObjectMapper();
-
+        // set up network api connection with json maooer
         Retrofit mRetrofit = new Retrofit.Builder()
-                .baseUrl(NetworkData.BASE_URL)
+                .baseUrl(NetworkConfig.BASE_URL)
                 .addConverterFactory(JacksonConverterFactory.create(mMapper))
                 .build();
 
         NetworkCall mNetworkCall = mRetrofit.create(NetworkCall.class);
-
+        // enqueue callback on data call
         mNetworkCall.getRecipes().enqueue(new Callback<List<Recipe>>() {
 
             @Override
             public void onResponse(Call<List<Recipe>> call, Response<List<Recipe>> response) {
                 if (response.isSuccessful()) {
+                    // set object if data
                     mRecipes = response.body();
-                    Log.i("ADAPTER", "ONRESPONSE: " + mRecipes.size());
+                    // run callback after connection
                     onPostRequest();
                 } else {
+                    // display error
                     displayMessage(findViewById(R.id.main_container), R.string.problem_with_data);
                 }
             }
 
             @Override
             public void onFailure(Call<List<Recipe>> call, Throwable t) {
+                // display error
                 displayMessage(findViewById(R.id.main_container), R.string.failure_to_download_data);
             }
         });
     }
 
-    protected void setUpAdapter(Context mContext, RecipeViewHolderHelper mCallBack)
+    /**
+     * set up adapter
+     *
+     * @param mContext
+     * @param mCallBack
+     */
+    protected void setUpAdapter(RecipeViewHolderHelper mCallBack)
     {
         if(mGridLayoutManager != null && mRecyclerView != null) {
             // smooth scrolling
@@ -86,7 +90,7 @@ public abstract class RecipeHelper extends AppCompatActivity
             // set up with layout manager
             mRecyclerView.setLayoutManager(mGridLayoutManager);
             // create adapter
-            mAdapter = new RecipeAdapter(mContext, mCallBack);
+            mAdapter = new RecipeAdapter(mCallBack);
             // set adapter
             mRecyclerView.setAdapter(mAdapter);
         }
@@ -107,16 +111,26 @@ public abstract class RecipeHelper extends AppCompatActivity
         );
     }
 
+    /**
+     *
+     */
     protected class RecipeAdapter extends BaseBakerAdapter<Recipe>
     {
-        private Context mContext;
+        //call back
         private RecipeViewHolderHelper mCallBack;
 
-        public RecipeAdapter(Context mContext, RecipeViewHolderHelper mCallBack) {
-            this.mContext = mContext;
+        /**
+         * @param mCallBack
+         */
+        public RecipeAdapter(RecipeViewHolderHelper mCallBack) {
             this.mCallBack = mCallBack;
         }
 
+        /**
+         * @param parent
+         * @param viewType
+         * @return
+         */
         @NonNull
         @Override
         public RecipeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -124,13 +138,18 @@ public abstract class RecipeHelper extends AppCompatActivity
             return new RecipeViewHolder(view);
         }
 
+        /**
+         * @param holder
+         * @param position
+         */
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
             RecipeViewHolder mHolder = (RecipeViewHolder) holder;
-
+            // get data
             Recipe mRecipe = (Recipe) mBase.get(position);
+            // set ui name
             mHolder.mName.setText(mRecipe.getName());
-            // for this example, all images are null
+            // set image data
             if(mRecipe.getImage() != null || mRecipe.getImage().length() > 0) {
                 ImageDisplay.loadImage(
                         (RecipeHelper.this),
@@ -143,38 +162,46 @@ public abstract class RecipeHelper extends AppCompatActivity
             }
         }
 
+        /**
+         *
+         */
         public class RecipeViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
             public TextView mName;
             public ImageView mThumbnail;
 
+            /**
+             * @param view
+             */
             public RecipeViewHolder(View view) {
                 super(view);
                 view.setOnClickListener(this);
+                // set ui references
                 mName = view.findViewById(R.id.main_recipe_item_name);
                 mThumbnail = view.findViewById(R.id.main_recipe_item_image);
                 mName.setClipToOutline(true);
             }
 
+            /**
+             * @param v
+             */
             @Override
             public void onClick(View v) {
+                // get data at position
                 Recipe mRecipe = (Recipe) mBase.get(getAdapterPosition());
+                // call call back
                 mCallBack.onClickHelper(mRecipe);
-
-
-//
-//                Intent intent = new Intent(RecipeHelper.this, RecipeActivity.class);
-//
-//                intent.putExtra(RecipeActivity.RECIPE_DATA, mRecipe);
-//
-//                startActivity(intent);
             }
         }
-
-
     }
 
+    /**
+     * call back for view holder
+     */
     public interface RecipeViewHolderHelper
     {
+        /**
+         * @param mRecipe
+         */
         public void onClickHelper(Recipe mRecipe);
     }
 

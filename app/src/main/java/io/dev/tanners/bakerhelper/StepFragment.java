@@ -13,10 +13,17 @@ public class StepFragment extends StepFragmentBase {
     // other methods are used for dynamic
     protected FragmentStepData mCallback;
 
+    /**
+     *
+     */
     public StepFragment() {
         // Required empty public constructor
     }
 
+    /**
+     * @param mStep
+     * @return
+     */
     public static StepFragment newInstance(Step mStep) {
         StepFragment mFragment = new StepFragment();
         Bundle args = new Bundle();
@@ -25,43 +32,65 @@ public class StepFragment extends StepFragmentBase {
         return mFragment;
     }
 
+    /**
+     * @param savedInstanceState
+     */
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        // check for null callback
         if(mCallback != null)
             mStep = mCallback.getStep();
         // need data before calling parent that uses those resources
         super.onActivityCreated(savedInstanceState);
-
+        // set up toolbar
         setUpToolbar();
     }
 
+    /**
+     * @param context
+     */
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-
+        // set context object
         mContext = context;
-
+        // check if context is attached to call back
         if (context instanceof FragmentStepData) {
             mCallback = (FragmentStepData) context;
         } else {
             mCallback = null;
-
+            // throw exception
             throw new RuntimeException(context.toString()
                     + " must implement FragmentStepData");
         }
     }
 
+    /**
+     * set up tool bar
+     */
     private void setUpToolbar()
     {
         Toolbar mToolbar = (Toolbar) mView.findViewById(R.id.main_toolbar);
+        // set short description as ui element
         mToolbar.setTitle(mStep.getShortDescription());
         ((AppCompatActivity)getActivity()).setSupportActionBar(mToolbar);
     }
 
+    /**
+     * step call back
+     */
     public interface FragmentStepData {
-        Step getStep();
+        /**
+         * get step object
+         *
+         * @return
+         */
+        public Step getStep();
     }
 
+    /**
+     *
+     */
     @Override
     public void onDetach() {
         super.onDetach();

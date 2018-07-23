@@ -15,7 +15,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,8 +33,9 @@ import static io.dev.tanners.bakerhelper.widget.RecipeWidgetConfigure.PENDING_IN
 import static io.dev.tanners.bakerhelper.widget.RecipeWidgetProvider.PENDING_INTENT_RECIPE_EXTRA_CONFIG;
 
 public class RecipeFragment extends Fragment implements LoaderManager.LoaderCallbacks<Boolean>, DataUtil {
+    // identifies loader used here
     private final static int RECIPE_FRAGMENT_LOADER = 2468;
-//    public final static String RECIPE_DATA = "DATA_FOR_RECIPE";
+    // keys for onrestore list pos data
     public final static String STEP_ADAPTER_POS = "POS_OF_STEP";
     public final static String ING_ADAPTER_POS = "POS_OF_ING";
     private Recipe mRecipe;
@@ -47,13 +47,19 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
     private Context mContext;
     // state to mark if the data being passed in is a newIntent
     private boolean newIntent = false;
-    // the intent that the newIntentbool uses
+    // the intent that the newIntent bool uses
     private Intent newDataIntent;
 
+    /**
+     *
+     */
     public RecipeFragment() {
         // Required empty public constructor
     }
 
+    /**
+     * @return
+     */
     public static RecipeFragment newInstance() {
         return new RecipeFragment();
     }
@@ -63,21 +69,30 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
      */
     @Override
     public void loadNewData(Intent mIntent) {
-        Log.d("WIDGET", "NEW LOAD");
-        // clar current data to trigger update
+        // clear current data to trigger update
         mRecipe = null;
+        // set bool for later use on selecting which method to load data
         newIntent = true;
+        // set class var to be used later
         this.newDataIntent = mIntent;
-
+        // load loader that will call db async with
+        // info on what data to grab from db
         loadLoader();
     }
 
-
-    // interface that calls the host's method that implements this interface
+    /**
+     * interface that calls the host's method that implements this interface
+     */
     public interface FragmentData {
         public Recipe getData();
     }
 
+    /**
+     * @param inflater
+     * @param container
+     * @param savedInstanceState
+     * @return
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -85,37 +100,34 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
 
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_recipe, container, false);
-
+        // return view
         return view;
     }
 
+    /**
+     * @param savedInstanceState
+     */
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        // set up fragment
         setUpFragment();
-//        // get data from activity
-//        if(mCallback != null) {
-//            mRecipe = mCallback.getData();
-//
-//            if(mRecipe != null)
-//                loadResources();
-//            else
-//            {
-//                // if null, could mean data
-//                // is passed via pref from widget
-//                loadLoader();
-//            }
-//        }
     }
 
+    /**
+     * set up fragment's data and UI
+     */
     private void setUpFragment()
     {
         // get data from activity
         if(mCallback != null) {
             mRecipe = mCallback.getData();
-
+            // data returned from callback means recipe was passed from main activity
             if(mRecipe != null)
                 loadResources();
+            // if this is null, chances are the data passed in from getData
+            // which is a callback used that grabs data passed into the
+            // host activity via intent, was not passed in that way
             else
             {
                 // if null, could mean data
@@ -125,10 +137,14 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
         }
     }
 
+    /**
+     * load loader used for data grathering
+     */
     private void loadLoader()
     {
+        // get loader manager
         LoaderManager mLoaderManager = getActivity().getSupportLoaderManager();
-
+        // get loader
         Loader<Boolean> mLoader = mLoaderManager.getLoader(RECIPE_FRAGMENT_LOADER);
         // check loader instance
         if(mLoader != null)
@@ -137,29 +153,42 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
             mLoaderManager.restartLoader(RECIPE_FRAGMENT_LOADER, null, this).forceLoad();
     }
 
+    /**
+     * load ui resources from recipe data
+     */
     private void loadResources()
     {
+        // if data is not null
         if(mRecipe != null)
         {
+            // set up ingredients if not null
             if(mRecipe.getIngredients() != null)
                 setUpIngredientList(mRecipe.getIngredients());
+            // set up steps, with call back
             if(mRecipe.getSteps() !=null)
                 setUpStepList(mRecipe.getSteps(), setStepAdapterStateCallback());
+            // set up toolbar
             setUpToolbar();
         }
     }
 
+    /**
+     * @param savedInstanceState
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
+    /**
+     * @param context
+     */
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-
+        // save context locally
         mContext = context;
-
+        // check if needed fragment is attached to context
         try {
             mCallback = (FragmentData) context;
         } catch (ClassCastException e) {
@@ -168,12 +197,20 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
         }
     }
 
+    /**
+     *
+     */
     @Override
     public void onDetach() {
         mCallback = null;
         super.onDetach();
     }
 
+    /**
+     * save list's positions
+     *
+     * @param savedInstanceState
+     */
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
         super.onSaveInstanceState(savedInstanceState);
@@ -182,37 +219,53 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
             savedInstanceState.putParcelable(STEP_ADAPTER_POS, mStepRecyclerView.getLayoutManager().onSaveInstanceState());
         if(mIngredientRecyclerView != null)
             savedInstanceState.putParcelable(ING_ADAPTER_POS, mIngredientRecyclerView.getLayoutManager().onSaveInstanceState());
-
     }
 
+    /**
+     * restore list's positions
+     *
+     * @param savedInstanceState
+     */
     @Override
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
-
+        // check for null saved state
         if(savedInstanceState != null)
         {
+            // restore steps list's pos
             mStepRecyclerView.getLayoutManager().onRestoreInstanceState(
                     savedInstanceState.getParcelable(STEP_ADAPTER_POS)
             );
-
+            // restore ingredient list's pos
             mIngredientRecyclerView.getLayoutManager().onRestoreInstanceState(
                     savedInstanceState.getParcelable(ING_ADAPTER_POS)
             );
         }
     }
 
+    /**
+     * set up toolbar
+     */
     private void setUpToolbar()
     {
         Toolbar mToolbar = (Toolbar) view.findViewById(R.id.main_toolbar);
+        // use name of recipe item
         mToolbar.setTitle(mRecipe.getName());
         ((AppCompatActivity)getActivity()).setSupportActionBar(mToolbar);
     }
 
+    /**
+     * set up step's adapter callback
+     * this behaviors differently based on ui config
+     *
+     * @return
+     */
     private OnClicked setStepAdapterStateCallback()
     {
         // not a tablet
         if(view.findViewById(R.id.recipe_step_container) == null)
         {
+            // onclick will launch step activity
             return new OnClicked() {
                 @Override
                 public void stepAction(Step mStep) {
@@ -224,6 +277,7 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
         }
         // possible tablet
         else {
+            // onlick will load steps into complementary fragment
             return new OnClicked() {
                 @Override
                 public void stepAction(Step mStep) {
@@ -231,7 +285,7 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
                     FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                     // Creating a new head fragment
                     StepFragmentDynamic mStepFragment = StepFragmentDynamic.newInstance(mStep);
-
+                    // replace fragment
                     fragmentManager.beginTransaction()
                             .replace(R.id.recipe_step_container, mStepFragment)
                             .commit();
@@ -241,32 +295,56 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
         }
     }
 
+    /**
+     * set up step's adapter
+     *
+     * @param mSteps
+     * @param mOnClicked
+     */
     private void setUpStepList(List<Step> mSteps, OnClicked mOnClicked)
     {
         mStepRecyclerView = (RecyclerView) view.findViewById(R.id.recipe_steps);
         LinearLayoutManager mStepRecyclerLayoutManager = new LinearLayoutManager(mContext);
         mStepRecyclerLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        // set adapter with callback
         StepAdapter mStepAdapter = new StepAdapter(mSteps, mOnClicked);
         mStepRecyclerView.setLayoutManager(mStepRecyclerLayoutManager);
         mStepRecyclerView.setAdapter(mStepAdapter);
     }
 
+    /**
+     * set up ingredient's adapter
+     *
+     * @param mIngredients
+     */
     private void setUpIngredientList(List<Ingredient> mIngredients)
     {
         mIngredientRecyclerView = (RecyclerView) view.findViewById(R.id.recipe_ingredients);
         LinearLayoutManager mIngredientRecyclerLayoutManager = new LinearLayoutManager(mContext);
         mIngredientRecyclerLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        // set adapter will callback
         IngredientAdapter mIngredientAdapter = new IngredientAdapter(mIngredients);
         mIngredientRecyclerView.setLayoutManager(mIngredientRecyclerLayoutManager);
         mIngredientRecyclerView.setAdapter(mIngredientAdapter);
     }
 
+    /**
+     * ingredients Adapter
+     */
     private class IngredientAdapter  extends BaseBakerAdapter<Ingredient> {
 
+        /**
+         * @param mIngredients
+         */
         public IngredientAdapter(List<Ingredient> mIngredients) {
             this.mBase = mIngredients;
         }
 
+        /**
+         * @param parent
+         * @param viewType
+         * @return
+         */
         @NonNull
         @Override
         public IngredientViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -275,14 +353,25 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
             return new IngredientViewHolder(view);
         }
 
+        /**
+         * @param holder
+         * @param position
+         */
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
             IngredientViewHolder mHolder = (IngredientViewHolder) holder;
+            // get item at pos
             Ingredient mItem = mBase.get(position);
-
+            // set textview with ingredients formatted into one string
             mHolder.mIngredientDetail.setText(formatIngredient(mItem));
         }
 
+        /**
+         * format ingredients into one string
+         *
+         * @param mItem
+         * @return
+         */
         private String formatIngredient(Ingredient mItem)
         {
             StringBuilder mBuilder = new StringBuilder();
@@ -296,30 +385,48 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
             return mBuilder.toString();
         }
 
+        /**
+         * @return
+         */
         @Override
         public int getItemCount() {
             return mBase == null ? 0 : mBase.size();
         }
 
+        /**
+         *
+         */
         private class IngredientViewHolder extends RecyclerView.ViewHolder {
             private TextView mIngredientDetail;
 
             public IngredientViewHolder(View itemView) {
                 super(itemView);
-
+                // get textview reference
                 mIngredientDetail = itemView.findViewById(R.id.recipe_ingredient_text);
             }
         }
     }
 
+    /**
+     * step adapter
+     */
     private class StepAdapter extends BaseBakerAdapter<Step> {
         private OnClicked mOnClick;
 
+        /**
+         * @param mSteps
+         * @param mOnClick
+         */
         public StepAdapter(List<Step> mSteps, OnClicked mOnClick) {
             this.mBase = mSteps;
             this.mOnClick = mOnClick;
         }
 
+        /**
+         * @param parent
+         * @param viewType
+         * @return
+         */
         @NonNull
         @Override
         public StepViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -328,38 +435,62 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
             return new StepViewHolder(view);
         }
 
+        /**
+         * @param holder
+         * @param position
+         */
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
             StepViewHolder mHolder = (StepViewHolder) holder;
             Step mStep = mBase.get(position);
-
+            // add short description as item ui
             mHolder.mShortDescription.setText(mStep.getShortDescription());
         }
 
+        /**
+         * hold's steps views
+         */
         private class StepViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
             private TextView mShortDescription;
 
+            /**
+             * @param itemView
+             */
             public StepViewHolder(View itemView) {
                 super(itemView);
 
-                // due to wierd bug, the textview and view need to have the onclick set
+                // due to weird bug, the textview and view need to have the onclick set
                 itemView.setOnClickListener(this);
-                mShortDescription = itemView.findViewById(R.id.recipe_step_short_desc);
                 mShortDescription.setOnClickListener(this);
+                mShortDescription = itemView.findViewById(R.id.recipe_step_short_desc);
             }
 
+            /**
+             * @param v
+             */
             @Override
             public void onClick(View v) {
+                // get data at pos
                 Step mStep = (Step) mBase.get(getAdapterPosition());
+                // call callback method
                 mOnClick.stepAction(mStep);
             }
         }
     }
 
+    /**
+     *
+     */
     public interface OnClicked {
         public void stepAction(Step mStep);
     }
 
+    /**
+     * get shared preferences object
+     *
+     * @param mWidgetId
+     * @return
+     */
     private SharedPreferences getSharedPreferences(int mWidgetId)
     {
         return getActivity().getSharedPreferences(
@@ -368,6 +499,11 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
         );
     }
 
+    /**
+     * @param id
+     * @param args
+     * @return
+     */
     @NonNull
     @Override
     public Loader<Boolean> onCreateLoader(int id, @Nullable Bundle args) {
@@ -387,25 +523,33 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
                     newIntent = false;
                     return true;
                 }
+                // intent data came from provider
                 if(getActivity().getIntent().hasExtra(PENDING_INTENT_RECIPE_EXTRA)) {
                     int mWidgetId = getActivity().getIntent().getIntExtra(PENDING_INTENT_RECIPE_EXTRA, -1);
                     loadRecipeDataFromWidget(mWidgetId);
                     return true;
                 }
+                // intent data came from configuration class
                 else if(getActivity().getIntent().hasExtra(PENDING_INTENT_RECIPE_EXTRA_CONFIG)) {
                     int mWidgetId = getActivity().getIntent().getIntExtra(PENDING_INTENT_RECIPE_EXTRA_CONFIG, -1);
                     loadRecipeDataFromWidget(mWidgetId);
                     return true;
                 }
+                // if all else fails
                 return false;
             }
         });
     }
 
+    /**
+     * load recipe based on shared preference based off widget id
+     *
+     * @param mWidgetId
+     */
     private void loadRecipeDataFromWidget(int mWidgetId)
     {
+        // get db instance
         final RecipeDatabase mDb = RecipeDatabase.getInstance(getContext());
-
         // use the widget id as part of the key to get the proper recipe
         mRecipe = mDb.getRecipeDao().loadRecipeById(
                 getSharedPreferences(mWidgetId).getInt(
@@ -415,17 +559,23 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
         );
     }
 
+    /**
+     * @param loader
+     * @param data
+     */
     @Override
     public void onLoadFinished(@NonNull Loader<Boolean> loader, Boolean data) {
+        // load ui resources
+        // unlike the other call, this is called
+        // if other means of retrieving the data fail
         loadResources();
     }
 
+    /**
+     * @param loader
+     */
     @Override
     public void onLoaderReset(@NonNull Loader<Boolean> loader) {
-
+        // not needed
     }
-
-
-
-
 }

@@ -68,13 +68,14 @@ public class NonLandscapeUITest {
                     }
                 }
         );
-
-
     }
 
     @Rule
     public ActivityTestRule<MainActivity> mActivityTestRule = new ActivityTestRule<>(MainActivity.class);
 
+    /**
+     * load idling resource before test
+     */
     @Before
     public void registerIdlingResource() {
         mIdlingResource = mActivityTestRule.getActivity().getIdlingResource();
@@ -82,37 +83,58 @@ public class NonLandscapeUITest {
         IdlingRegistry.getInstance().register(mIdlingResource);
     }
 
+    /**
+     * check if list item is clickable
+     */
     @Test
     public void clickListItem_IsClickable() {
         onData(anything()).inAdapterView(withId(R.id.main_recipe_list)).atPosition(0).onChildView(isClickable());
     }
 
+    /**
+     * check if toolbar exist after clicking on list item to open up next activity
+     */
     @Test
     public void clickListItem_ToolbarExistInNextActivity() {
         adapterClick(R.id.main_recipe_list, "Main activity onClick Test");
         onView(withId(R.id.toolbar)).check(matches(isDisplayed()));
     }
 
+    /**
+     * check if list item even shows
+     */
     @Test
     public void listItem_IsDisplayed() {
         onData(anything()).inAdapterView(withId(R.id.main_recipe_list)).atPosition(0).onChildView((isDisplayed()));
     }
 
+    /**
+     * click list item
+     */
     @Test
     public void clickStepListItem_Click() {
         adapterClick(R.id.main_recipe_list, "Main activity onClick Test");
     }
 
+    /**
+     * see if tool bar shows up
+     */
     @Test
     public void mainActivityToolbar_isDisplayed() {
         onView(withId(R.id.toolbar)).check(matches(isDisplayed()));
     }
 
+    /**
+     * see if list has items
+     */
     @Test
     public void mainActivityList_hasItems() {
         onView(withId(R.id.main_recipe_list)).check(new RecyclerViewItemCountAssertion());
     }
 
+    /**
+     * un register idling resource after test
+     */
     @After
     public void unregisterIdlingResource() {
         if (mIdlingResource != null) {
@@ -123,9 +145,17 @@ public class NonLandscapeUITest {
 
     /**
      * All credit: https://stackoverflow.com/a/37339656/2449314
+     *
+     * check count for recyclerview
      */
     public class RecyclerViewItemCountAssertion implements ViewAssertion {
 
+        /**
+         * check count
+         *
+         * @param view
+         * @param noViewFoundException
+         */
         @Override
         public void check(View view, NoMatchingViewException noViewFoundException) {
             if (noViewFoundException != null) {
@@ -134,7 +164,7 @@ public class NonLandscapeUITest {
 
             RecyclerView recyclerView = (RecyclerView) view;
             MainActivity.RecipeAdapter adapter = (MainActivity.RecipeAdapter) recyclerView.getAdapter();
-
+            // see if it has data
             assertThat(adapter.getItemCount(), greaterThan(0));
         }
     }

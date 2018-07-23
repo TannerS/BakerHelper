@@ -25,9 +25,19 @@ public class Recipe implements Parcelable {
     private List<Step> steps;
     private List<Ingredient> ingredients;
 
+    /**
+     *
+     */
     @Ignore
     public Recipe() { }
 
+    /**
+     * @param name
+     * @param servings
+     * @param image
+     * @param steps
+     * @param ingredients
+     */
     @Ignore
     public Recipe(String name, int servings, String image, List<Step> steps, List<Ingredient> ingredients) {
         this.name = name;
@@ -37,6 +47,14 @@ public class Recipe implements Parcelable {
         this.ingredients = ingredients;
     }
 
+    /**
+     * @param id
+     * @param name
+     * @param servings
+     * @param image
+     * @param steps
+     * @param ingredients
+     */
     public Recipe(int id, String name, int servings, String image, List<Step> steps, List<Ingredient> ingredients) {
         this.id = id;
         this.name = name;
@@ -46,61 +64,102 @@ public class Recipe implements Parcelable {
         this.ingredients = ingredients;
     }
 
+    /**
+     * @return
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     * @param id
+     */
     public void setId(int id) {
         this.id = id;
     }
 
+    /**
+     * @return
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * @param name
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * @return
+     */
     public int getServings() {
         return servings;
     }
 
+    /**
+     * @param servings
+     */
     public void setServings(int servings) {
         this.servings = servings;
     }
 
+    /**
+     * @return
+     */
     public String getImage() {
         return image;
     }
 
+    /**
+     * @param image
+     */
     public void setImage(String image) {
         this.image = image;
     }
 
+    /**
+     * @return
+     */
     public List<Step> getSteps() {
         return steps;
     }
 
+    /**
+     * @param steps
+     */
     public void setSteps(List<Step> steps) {
         this.steps = steps;
     }
 
+    /**
+     * @return
+     */
     public List<Ingredient> getIngredients() {
         return ingredients;
     }
 
+    /**
+     * @param ingredients
+     */
     public void setIngredients(List<Ingredient> ingredients) {
         this.ingredients = ingredients;
     }
 
+    /**
+     * @return
+     */
     @Override
     public int describeContents() {
         return 0;
     }
 
-    /*
-    http://www.parcelabler.com/
+    /**
+     *  http://www.parcelabler.com/
+     *
+     * @param in
      */
     protected Recipe(Parcel in) {
         name = in.readString();
@@ -120,6 +179,10 @@ public class Recipe implements Parcelable {
         }
     }
 
+    /**
+     * @param dest
+     * @param flags
+     */
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(name);
@@ -139,13 +202,24 @@ public class Recipe implements Parcelable {
         }
     }
 
+    /**
+     *
+     */
     @SuppressWarnings("unused")
     public static final Parcelable.Creator<Recipe> CREATOR = new Parcelable.Creator<Recipe>() {
+        /**
+         * @param in
+         * @return
+         */
         @Override
         public Recipe createFromParcel(Parcel in) {
             return new Recipe(in);
         }
 
+        /**
+         * @param size
+         * @return
+         */
         @Override
         public Recipe[] newArray(int size) {
             return new Recipe[size];

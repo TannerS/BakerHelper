@@ -1,5 +1,8 @@
 package io.dev.tanners.bakerhelper.aac.db.config;
 
+/**
+ * db configs
+ */
 public class DBConfig {
     public final static String TABLE_NAME_RECIPES = "recipes";
     public final static String ORDER_BY_FIELD = "name";

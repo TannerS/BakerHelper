@@ -14,22 +14,31 @@ import java.util.List;
 import io.dev.tanners.bakerhelper.model.Recipe;
 
 public class GenericLoader extends AsyncTaskLoader<Boolean> {
-    private OnLoadInBackGroundCallBack mOnLoadInBackGroundCallBack;
-    private WeakReference<Context> mContext;
-    private OnLoadInBackGroundCallBack mCallback;
+    protected OnLoadInBackGroundCallBack mCallback;
 
+    /**
+     * @param mContext
+     * @param mBundle
+     * @param mCallback
+     */
     public GenericLoader(@NonNull Context mContext, Bundle mBundle, OnLoadInBackGroundCallBack mCallback) {
         super(mContext);
-        this.mContext = new WeakReference<Context>(mContext);
         this.mCallback = mCallback;
     }
 
+    /**
+     * @return
+     */
     @Nullable
     @Override
     public Boolean loadInBackground() {
+        // do call back
         return mCallback._do();
     }
 
+    /**
+     * call back
+     */
     public interface OnLoadInBackGroundCallBack
     {
         public boolean _do();

@@ -35,20 +35,15 @@ public class ImageDisplay
      * @param mImageView
      */
     public static void loadImage(Context mContext, String mResource, int mError, ImageView mImageView, int mPlaceHolder) {
-        // https://github.com/bumptech/glide/issues/1484
-//        if(!((Activity) mContext).isFinishing()) {
-            Glide.with(mContext)
-                    .load(mResource)
-                    .apply(new RequestOptions()
-                            .centerCrop()
-//                            .error(mError)
-                            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
-//                            .placeholder(mPlaceHolder)
-                    )
-                    .transition(new DrawableTransitionOptions()
-                            .crossFade())
-                    .into(mImageView);
-//        }
+        Glide.with(mContext)
+                .load(mResource)
+                .apply(new RequestOptions()
+                        .centerCrop()
+                        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                )
+                .transition(new DrawableTransitionOptions()
+                        .crossFade())
+                .into(mImageView);
     }
 
     /**

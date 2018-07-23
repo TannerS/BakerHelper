@@ -9,19 +9,30 @@ import java.util.List;
 import io.dev.tanners.bakerhelper.model.Step;
 
 public class ListStepConverter {
+    /**
+     * convert json to object
+     *
+     * @param mStepStr
+     * @return
+     */
     @TypeConverter
     public static List<Step> toObjectFromString(String mStepStr) {
-
-        Type listType = new TypeToken<List<Step>>() {
-        }.getType();
-
+        // get list type
+        Type listType = new TypeToken<List<Step>>() {}.getType();
+        // return object from json
         return new Gson().fromJson(mStepStr, listType);
-
     }
 
+    /**
+     * convert object to string
+     *
+     * @param mSteps
+     * @return
+     */
     @TypeConverter
     public static String FromListToStr(List<Step> mSteps) {
         Gson gson = new Gson();
+        // return json
         return gson.toJson(mSteps);
     }
 }

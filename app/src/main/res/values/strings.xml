@@ -7,6 +7,4 @@
     <string name="problem_with_data">An error has occurred</string>
     <string name="widget_data_network_loading_error">Error loading data</string>
     <string name="widget_toolbar_text">Widget Configuration</string>
-    <!--<string name="appwidget_text">EXAMPLE</string>-->
-    <!--<string name="add_widget">Add widget</string>-->
 </resources>

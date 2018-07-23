@@ -1,8 +1,6 @@
 package io.dev.tanners.bakerhelper.widget;
 
-import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.LoaderManager;
@@ -12,11 +10,8 @@ import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.widget.RemoteViews;
 import java.util.List;
 import io.dev.tanners.bakerhelper.R;
-import io.dev.tanners.bakerhelper.RecipeActivity;
 import io.dev.tanners.bakerhelper.RecipeHelper;
 import io.dev.tanners.bakerhelper.aac.db.RecipeDatabase;
 import io.dev.tanners.bakerhelper.model.Recipe;
@@ -51,15 +46,14 @@ public class RecipeWidgetConfigure extends RecipeHelper {
     private static final int WIDGET_RECIPE_LOADER_NETWORK = 987654321;
     private static final int WIDGET_RECIPE_LOADER_DB = -987654321;
     public static final String PENDING_INTENT_RECIPE_EXTRA = "PENDING_INTENT_RECIPE_EXTRA";
-    public static final int PENDING_INTENT_RECIPE_CLICK = 354253;
 
-
+    /**
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // set up global config
-//        mGlobalConfig = new GlobalConfig();
         // get widget id
         getWidgetId();
         // load loader
@@ -114,6 +108,7 @@ public class RecipeWidgetConfigure extends RecipeHelper {
     {
         Intent mResult = new Intent();
         mResult.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mWidgetId);
+        // send ok with widget back, as per docs
         setResult(RESULT_OK, mResult);
         finish();
     }
@@ -133,11 +128,18 @@ public class RecipeWidgetConfigure extends RecipeHelper {
         }
     }
 
+    /**
+     * get recipe data
+     *
+     * @return
+     */
     private boolean getRecipes()
     {
+        // db reference
         final RecipeDatabase mDb = RecipeDatabase.getInstance(getApplicationContext());
+        // get data from db
         mRecipes = mDb.getRecipeDao().loadAllRecipes();
-
+        // return boolean for data
         return mRecipes.size() > 0;
     }
 
@@ -146,62 +148,70 @@ public class RecipeWidgetConfigure extends RecipeHelper {
      */
     private void setUpWidgetConfiguration()
     {
+        // set up toolbar
         setUpToolbar();
+        // set up stuff needed before setting up adapter
         beforeSetUpAdapter();
-
-        setUpAdapter(this, new RecipeViewHolderHelper() {
+        // set up adapter
+        setUpAdapter(new RecipeViewHolderHelper() {
             @Override
             public void onClickHelper(Recipe mRecipe) {
+                // save widget info
                 saveWidgetInfo(mRecipe);
-
+                // update widget with needed data
                 RecipeWidgetProvider.updateAppWidget(
                         RecipeWidgetConfigure.this,
                         AppWidgetManager.getInstance(RecipeWidgetConfigure.this),
                         mWidgetId
                 );
-//                updateWidgetViews();
                 // widget should be set up and this should close it with selected saved
                 setActivityResult();
             }
         });
-
+        // set adapter with data
         if(this.mAdapter != null) {
             // set adapter data
             this.mAdapter.updateAdapter(mRecipes);
         }
-
     }
 
+    /**
+     * set up UI before adapter
+     */
     private void beforeSetUpAdapter()
     {
         mRecyclerView = findViewById(R.id.main_recipe_list);
         mGridLayoutManager = new GridLayoutManager(this, 1);
     }
 
-
+    /**
+     * save recipe info
+     *
+     * @param mRecipe
+     */
     private void saveWidgetInfo(Recipe mRecipe)
     {
+        // get preferences for editor
         SharedPreferences.Editor mEditor = getWidgetInfoEditor().edit();
-        // this will change on every widget click,
-        // this is used to tell the activity what the id is
-//        mEditor.putInt(
-//                mGlobalConfig.getWidgetIdKey(),
-//                mWidgetId
-//        );
-
+        // save recipe name
         mEditor.putString(
                 GlobalConfig.getWidgetSharedPreferenceNameKey(mWidgetId),
                 mRecipe.getName()
         );
-
+        // save recipe id
         mEditor.putInt(
                 GlobalConfig.getWidgetSharedPreferenceDbIdKey(mWidgetId),
                 mRecipe.getId()
         );
-
+        // save preferences
         mEditor.apply();
     }
 
+    /**
+     * get shared preferences for current widget id
+     *
+     * @return
+     */
     private SharedPreferences getWidgetInfoEditor()
     {
         return getSharedPreferences(GlobalConfig.getWidgetSharedPreferenceKey(mWidgetId), MODE_PRIVATE);
@@ -215,25 +225,42 @@ public class RecipeWidgetConfigure extends RecipeHelper {
     {
         // load loader but this time do db add
         loadLoader(WIDGET_RECIPE_LOADER_NETWORK, new LoaderManager.LoaderCallbacks<Boolean>() {
+            /**
+             * @param id
+             * @param args
+             * @return
+             */
             @NonNull
             @Override
             public Loader<Boolean> onCreateLoader(int id, @Nullable Bundle args) {
                 return new GenericLoader(RecipeWidgetConfigure.this, null, new GenericLoader.OnLoadInBackGroundCallBack() {
+                    /**
+                     * @return
+                     */
                     @Override
                     public boolean _do() {
+                        // if there is no data
+                        // this means there is no data in db
+                        // so lets add it
                         if(mRecipes != null || mRecipes.size() == 0)
                         {
+                            // get db reference
                             final RecipeDatabase mDb = RecipeDatabase.getInstance(getApplicationContext());
                             // list should be full from network call
                             mDb.getRecipeDao().insertRecipes(mRecipes);
+                            // return true
                             return true;
                         }
-
+                        // no new data, return false
                         return false;
                     }
                 });
             }
 
+            /**
+             * @param loader
+             * @param data
+             */
             @Override
             public void onLoadFinished(@NonNull Loader<Boolean> loader, Boolean data) {
                 // did db have data?
@@ -248,6 +275,9 @@ public class RecipeWidgetConfigure extends RecipeHelper {
                 }
             }
 
+            /**
+             * @param loader
+             */
             @Override
             public void onLoaderReset(@NonNull Loader<Boolean> loader) {
 
@@ -260,54 +290,24 @@ public class RecipeWidgetConfigure extends RecipeHelper {
      */
     protected void loadLoader(int mLoaderId, LoaderManager.LoaderCallbacks<Boolean> mLoaderManagerCallback)
     {
-        // lets try to add data to db before using it now
+        // get loader manager
         LoaderManager mLoaderManager = getSupportLoaderManager();
-
+        // get loader
         Loader<Boolean> mLoader = mLoaderManager.getLoader(mLoaderId);
-
+        // load loader
         if(mLoader != null)
             mLoaderManager.initLoader(mLoaderId, null, mLoaderManagerCallback).forceLoad();
         else
             mLoaderManager.restartLoader(mLoaderId, null, mLoaderManagerCallback).forceLoad();
     }
 
-
-//    /**
-//     * Update the widget's view since this has to be done manually
-//     */
-//    private void updateWidgetViews()
-//    {
-//        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
-//
-//        RemoteViews mViews = new RemoteViews(getPackageName(), R.layout.recipe_widget);
-//
-//        mViews.setTextViewText(
-//                R.id.main_recipe_item_name,
-//                getWidgetInfoEditor().getString(
-//                        GlobalConfig.getWidgetSharedPreferenceNameKey(
-//                                mWidgetId
-//                        ), "INVALID"
-//                )
-//        );
-//        // create class to load
-//        Intent intent = new Intent(this, RecipeActivity.class);
-//        // pass in widget id to the activity which will be used to get proper widget id
-//        // to b used to get the proper wiget data based off that id
-//        intent.putExtra(PENDING_INTENT_RECIPE_EXTRA, mWidgetId);
-//        // set up pendingIntent
-//        PendingIntent pendingIntent = PendingIntent.getActivity(this, PENDING_INTENT_RECIPE_CLICK + mWidgetId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-//        // Widgets allow click handlers to only launch pending intents
-//        // id is the id of the xml element in the widget layout
-//        mViews.setOnClickPendingIntent(R.id.main_recipe_item_name, pendingIntent);
-//
-//        appWidgetManager.updateAppWidget(mWidgetId, mViews);
-//    }
-
+    /**
+     * set up toolbar
+     */
     private void setUpToolbar()
     {
         Toolbar mToolbar = (Toolbar) findViewById(R.id.main_toolbar);
         mToolbar.setTitle(getString(R.string.widget_toolbar_text));
-
         setSupportActionBar(mToolbar);
     }
 }

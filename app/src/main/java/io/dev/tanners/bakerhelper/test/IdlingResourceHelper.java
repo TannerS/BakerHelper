@@ -31,31 +31,60 @@ public class IdlingResourceHelper implements IdlingResource {
     @Nullable
     private volatile ResourceCallback mResourceCallback;
 
+    /**
+     * used across threads to give the state of the test
+     * in other words, if something is done or not based on
+     * boolean's value
+     */
     private AtomicBoolean mIsIdle = new AtomicBoolean(false);
 
+    /*
+     * get name of test/class
+     *
+     * @return
+     */
     @Override
     public String getName() {
         return this.getClass().getName();
     }
 
+    /**
+     * check if idling
+     *
+     * @return
+     */
     @Override
     public boolean isIdleNow() {
         return mIsIdle.get();
     }
 
+    /**
+     * call back for idling resource
+     *
+     * @param callback
+     */
     @Override
     public void registerIdleTransitionCallback(ResourceCallback callback) {
         mResourceCallback = callback;
     }
 
+    /**
+     * set state
+     *
+     * @param mIsIdle
+     */
     public void setState(boolean mIsIdle) {
         this.mIsIdle.set(mIsIdle);
-
+        // if idle and got a callback
         if (mIsIdle && mResourceCallback != null) {
+            // call the callback
             mResourceCallback.onTransitionToIdle();
         }
     }
 
+    /**
+     * constructor
+     */
     public IdlingResourceHelper() {
         super();
     }
