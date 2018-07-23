@@ -1,7 +1,6 @@
 package io.dev.tanners.bakerhelper.network;
 
 import java.util.List;
-
 import io.dev.tanners.bakerhelper.model.Recipe;
 import retrofit2.Call;
 import retrofit2.http.GET;

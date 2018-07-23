@@ -7,6 +7,7 @@ public class GlobalConfig {
     private static final String WIDGET_SHARED_PREFERENCE = "WIDGET_SHARED_PREFERENCE";
     private static final String WIDGET_SHARED_PREFERENCE_WIDGET_ID = "WIDGET_SHARED_PREFERENCE_WIDGET_ID";
     private static final String WIDGET_SHARED_PREFERENCE_NAME = "WIDGET_SHARED_PREFERENCE_NAME";
+    private static final String WIDGET_SHARED_PREFERENCE_INGREDIENT = "WIDGET_SHARED_PREFERENCE_INGREDIENT";
     private static final String WIDGET_SHARED_PREFERENCE_ID = "WIDGET_SHARED_PREFERENCE_DB_ID";
 
     /**
@@ -41,6 +42,17 @@ public class GlobalConfig {
     public static String getWidgetSharedPreferenceNameKey(int appWidgetId)
     {
         return formatKeyName(WIDGET_SHARED_PREFERENCE_NAME, appWidgetId);
+    }
+
+    /**
+     * get key for data's ingredients
+     *
+     * @param appWidgetId
+     * @return
+     */
+    public static String getWidgetSharedPreferenceIngredientKey(int appWidgetId)
+    {
+        return formatKeyName(WIDGET_SHARED_PREFERENCE_INGREDIENT, appWidgetId);
     }
 
     /**

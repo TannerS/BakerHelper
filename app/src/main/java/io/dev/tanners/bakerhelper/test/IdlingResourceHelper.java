@@ -18,9 +18,6 @@ package io.dev.tanners.bakerhelper.test;
 
 import android.support.annotation.Nullable;
 import android.support.test.espresso.IdlingResource;
-
-import com.bumptech.glide.request.ResourceCallback;
-
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**

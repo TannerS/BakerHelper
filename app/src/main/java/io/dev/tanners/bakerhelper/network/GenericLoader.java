@@ -2,16 +2,9 @@ package io.dev.tanners.bakerhelper.network;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.AsyncTaskLoader;
-import android.util.Log;
-
-import java.lang.ref.WeakReference;
-import java.util.List;
-
-import io.dev.tanners.bakerhelper.model.Recipe;
 
 public class GenericLoader extends AsyncTaskLoader<Boolean> {
     protected OnLoadInBackGroundCallBack mCallback;

@@ -10,11 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.util.List;
-
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
 import io.dev.tanners.bakerhelper.network.NetworkCall;
@@ -79,7 +76,6 @@ public abstract class RecipeHelper extends AppCompatActivity
     /**
      * set up adapter
      *
-     * @param mContext
      * @param mCallBack
      */
     protected void setUpAdapter(RecipeViewHolderHelper mCallBack)

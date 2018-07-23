@@ -13,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import java.util.List;
 import io.dev.tanners.bakerhelper.R;
 import io.dev.tanners.bakerhelper.RecipeHelper;
+import io.dev.tanners.bakerhelper.aac.db.ListIngredientConverter;
 import io.dev.tanners.bakerhelper.aac.db.RecipeDatabase;
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.network.GenericLoader;
@@ -203,6 +204,13 @@ public class RecipeWidgetConfigure extends RecipeHelper {
                 GlobalConfig.getWidgetSharedPreferenceDbIdKey(mWidgetId),
                 mRecipe.getId()
         );
+
+        // save ingredients
+        mEditor.putString(
+                GlobalConfig.getWidgetSharedPreferenceIngredientKey(mWidgetId),
+                ListIngredientConverter.FromListToStr(mRecipe.getIngredients())
+        );
+
         // save preferences
         mEditor.apply();
     }
@@ -256,7 +264,6 @@ public class RecipeWidgetConfigure extends RecipeHelper {
                     }
                 });
             }
-
             /**
              * @param loader
              * @param data
@@ -274,7 +281,6 @@ public class RecipeWidgetConfigure extends RecipeHelper {
                     setUpWidgetConfiguration();
                 }
             }
-
             /**
              * @param loader
              */

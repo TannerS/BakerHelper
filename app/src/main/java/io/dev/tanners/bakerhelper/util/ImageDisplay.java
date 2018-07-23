@@ -1,6 +1,5 @@
 package io.dev.tanners.bakerhelper.util;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.widget.ImageView;

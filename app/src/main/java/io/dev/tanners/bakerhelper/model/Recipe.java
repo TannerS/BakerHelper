@@ -207,19 +207,11 @@ public class Recipe implements Parcelable {
      */
     @SuppressWarnings("unused")
     public static final Parcelable.Creator<Recipe> CREATOR = new Parcelable.Creator<Recipe>() {
-        /**
-         * @param in
-         * @return
-         */
         @Override
         public Recipe createFromParcel(Parcel in) {
             return new Recipe(in);
         }
 
-        /**
-         * @param size
-         * @return
-         */
         @Override
         public Recipe[] newArray(int size) {
             return new Recipe[size];

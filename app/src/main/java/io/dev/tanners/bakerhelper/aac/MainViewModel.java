@@ -4,8 +4,6 @@ import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
-import android.util.Log;
-
 import java.io.IOException;
 import java.util.List;
 import io.dev.tanners.bakerhelper.model.Recipe;

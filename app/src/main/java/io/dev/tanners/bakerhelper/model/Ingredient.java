@@ -1,11 +1,8 @@
 package io.dev.tanners.bakerhelper.model;
 
-import android.arch.persistence.room.TypeConverters;
 import android.os.Parcel;
 import android.os.Parcelable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import io.dev.tanners.bakerhelper.aac.db.ListIngredientConverter;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Ingredient implements Parcelable {

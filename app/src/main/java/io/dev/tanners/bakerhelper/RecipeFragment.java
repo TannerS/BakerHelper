@@ -27,6 +27,7 @@ import io.dev.tanners.bakerhelper.model.Step;
 import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
 import io.dev.tanners.bakerhelper.network.GenericLoader;
 import io.dev.tanners.bakerhelper.support.DataUtil;
+import io.dev.tanners.bakerhelper.util.AdapterUtil;
 import io.dev.tanners.bakerhelper.widget.config.GlobalConfig;
 import static android.content.Context.MODE_PRIVATE;
 import static io.dev.tanners.bakerhelper.widget.RecipeWidgetConfigure.PENDING_INTENT_RECIPE_EXTRA;
@@ -363,7 +364,7 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
             // get item at pos
             Ingredient mItem = mBase.get(position);
             // set textview with ingredients formatted into one string
-            mHolder.mIngredientDetail.setText(formatIngredient(mItem));
+            mHolder.mIngredientDetail.setText(AdapterUtil.formatIngredient(mContext, mItem));
         }
 
         /**
@@ -461,8 +462,8 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
 
                 // due to weird bug, the textview and view need to have the onclick set
                 itemView.setOnClickListener(this);
-                mShortDescription.setOnClickListener(this);
                 mShortDescription = itemView.findViewById(R.id.recipe_step_short_desc);
+                mShortDescription.setOnClickListener(this);
             }
 
             /**

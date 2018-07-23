@@ -1,7 +1,6 @@
 package io.dev.tanners.bakerhelper.aac.db;
 
 import android.arch.persistence.room.TypeConverter;
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
