@@ -95,9 +95,9 @@ public class NonLandscapeUITest {
      * check if toolbar exist after clicking on list item to open up next activity
      */
     @Test
-    public void clickListItem_ToolbarExistInNextActivity() {
+    public void clickListItem_NextActivityToolbarExist() {
         adapterClick(R.id.main_recipe_list, "Main activity onClick Test");
-        onView(withId(R.id.toolbar)).check(matches(isDisplayed()));
+        onView(withId(R.id.main_toolbar)).check(matches(isDisplayed()));
     }
 
     /**
@@ -121,7 +121,7 @@ public class NonLandscapeUITest {
      */
     @Test
     public void mainActivityToolbar_isDisplayed() {
-        onView(withId(R.id.toolbar)).check(matches(isDisplayed()));
+        onView(withId(R.id.main_toolbar)).check(matches(isDisplayed()));
     }
 
     /**
