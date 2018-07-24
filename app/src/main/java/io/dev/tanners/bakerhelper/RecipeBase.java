@@ -1,5 +1,6 @@
 package io.dev.tanners.bakerhelper;
 
+import android.appwidget.AppWidgetManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -10,68 +11,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.model.support.BaseBakerAdapter;
-import io.dev.tanners.bakerhelper.network.NetworkCall;
-import io.dev.tanners.bakerhelper.network.NetworkConfig;
 import io.dev.tanners.bakerhelper.util.ImageDisplay;
 import io.dev.tanners.bakerhelper.util.SimpleSnackBarBuilder;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
+import io.dev.tanners.bakerhelper.widget.RecipeWidgetConfigure;
+import io.dev.tanners.bakerhelper.widget.RecipeWidgetProvider;
 
-public abstract class RecipeHelper extends AppCompatActivity
+public abstract class RecipeBase extends AppCompatActivity
 {
     /**
      * Run after network call
      */
-    protected abstract void onPostRequest();
     protected List<Recipe> mRecipes;
-    protected final static int RECIPE_LOADER = 123456789;
     protected RecipeAdapter mAdapter;
     protected GridLayoutManager mGridLayoutManager;
     protected RecyclerView mRecyclerView;
-
-    /**
-     * Get data from network
-     */
-    protected void getNetworkData()
-    {
-        ObjectMapper mMapper = new ObjectMapper();
-        // set up network api connection with json maooer
-        Retrofit mRetrofit = new Retrofit.Builder()
-                .baseUrl(NetworkConfig.BASE_URL)
-                .addConverterFactory(JacksonConverterFactory.create(mMapper))
-                .build();
-
-        NetworkCall mNetworkCall = mRetrofit.create(NetworkCall.class);
-        // enqueue callback on data call
-        mNetworkCall.getRecipes().enqueue(new Callback<List<Recipe>>() {
-
-            @Override
-            public void onResponse(Call<List<Recipe>> call, Response<List<Recipe>> response) {
-                if (response.isSuccessful()) {
-                    // set object if data
-                    mRecipes = response.body();
-                    // run callback after connection
-                    onPostRequest();
-                } else {
-                    // display error
-                    displayMessage(findViewById(R.id.main_container), R.string.problem_with_data);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Recipe>> call, Throwable t) {
-                // display error
-                displayMessage(findViewById(R.id.main_container), R.string.failure_to_download_data);
-            }
-        });
-    }
 
     /**
      * set up adapter
@@ -148,7 +104,7 @@ public abstract class RecipeHelper extends AppCompatActivity
             // set image data
             if(mRecipe.getImage() != null || mRecipe.getImage().length() > 0) {
                 ImageDisplay.loadImage(
-                        (RecipeHelper.this),
+                        (RecipeBase.this),
                         // no image url in actually data
                         // just here if ever updated
                         mRecipe.getImage(),
@@ -200,5 +156,4 @@ public abstract class RecipeHelper extends AppCompatActivity
          */
         public void onClickHelper(Recipe mRecipe);
     }
-
 }

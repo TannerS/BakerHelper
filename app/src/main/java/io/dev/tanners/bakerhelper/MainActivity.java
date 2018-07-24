@@ -33,7 +33,7 @@ import io.dev.tanners.bakerhelper.test.IdlingResourceHelper;
  5) the db using room also does not re-insert every time the app starts, it ignores db conflicts
 
  */
-public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCallbacks<Boolean> {
+public class MainActivity extends RecipeBase {
     private final static String ADAPTER_RESTORE_KEY = "RECIPE_RESTORE_KEY";
     private MainViewModel mMainViewModel;
     private IdlingResourceHelper mIdlingResource;
@@ -51,21 +51,21 @@ public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCa
         if (mIdlingResource != null) {
             mIdlingResource.setState(false);
         }
-        // get data via network
-        getNetworkData();
-        // set up tool bar
+        // view model will call our db, so db needed to be populated prior
+        setupViewModel();
+        // determine layout
+        determineAdapterProperties();
+        // set up adapter
+        setUpAdapter();
+        // set up toolbar
         setUpToolbar();
-    }
-
-    /**
-     * get database instance and insert list of recipes
-     */
-    private void setUpDbData()
-    {
-        // get db instance
-        final RecipeDatabase mDb = RecipeDatabase.getInstance(getApplicationContext());
-        // insert recipes into db
-        mDb.getRecipeDao().insertRecipes(mRecipes);
+        // get data for adapter
+        try {
+            getData();
+        } catch (IOException e) {
+            displayMessage(findViewById(R.id.main_container), R.string.problem_with_data);
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -105,43 +105,19 @@ public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCa
      */
     private void setupViewModel() {
         // load view model
-        try {
-            // get instance of view model
-            mMainViewModel = ViewModelProviders.of(
-                        this,
-                    new MainViewModelFactory(
-                            getApplication(),
-                            // new data repo
-                            new RecipeRepository(this)
-                    )).get(MainViewModel.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-    }
-
-    /**
-     * call back to do after network call
-     */
-    @Override
-    protected void onPostRequest()
-    {
-        // get loader manager
-        LoaderManager mLoaderManager = getSupportLoaderManager();
-        // get loader
-        Loader<Boolean> mLoader = mLoaderManager.getLoader(RECIPE_LOADER);
-        // check loader instance
-        if(mLoader != null)
-            mLoaderManager.initLoader(RECIPE_LOADER, null, this).forceLoad();
-        else
-            mLoaderManager.restartLoader(RECIPE_LOADER, null, this).forceLoad();
+        // get instance of view model
+        mMainViewModel = ViewModelProviders.of(
+                    this,
+                new MainViewModelFactory(
+                        getApplication(),
+                        RecipeRepository.getInstance(this)
+                )).get(MainViewModel.class);
     }
 
     /**
      * get recipe data from view model via live data
      */
-    private synchronized void getData()
-    {
+    private synchronized void getData() throws IOException {
         // get data from view model via live data's observer
         mMainViewModel.getmRecipes().observe(this, new Observer<List<Recipe>>() {
             @Override
@@ -196,41 +172,10 @@ public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCa
     }
 
     /**
-     * create loader to load recipes
-     * this loader will also have a call back
-     *
-     * @param id
-     * @param args
-     * @return
+     * set up the adapter with the layout
      */
-    @NonNull
-    @Override
-    public Loader<Boolean> onCreateLoader(int id, @Nullable Bundle args) {
-        // load loader with call back
-        return new GenericLoader(
-                this, args, new GenericLoader.OnLoadInBackGroundCallBack() {
-            @Override
-            public boolean _do() {
-                // get data for db
-                setUpDbData();
-                // view model will call our db, so db needed to be populated prior
-                setupViewModel();
-                // return true
-                return true;
-            }
-        });
-    }
-
-    /**
-     * after loader finishes
-     *
-     * @param loader
-     * @param data
-     */
-    @Override
-    public void onLoadFinished(@NonNull Loader<Boolean> loader, Boolean data) {
-        // determine the ui layout
-        determineAdapterProperties();
+    private void setUpAdapter()
+    {
         // set up recipe adapter with callback
         setUpAdapter(new RecipeViewHolderHelper() {
             @Override
@@ -243,13 +188,6 @@ public class MainActivity extends RecipeHelper implements LoaderManager.LoaderCa
                 startActivity(intent);
             }
         });
-        // get recipe data from view model via live data
-        getData();
-    }
-
-    @Override
-    public void onLoaderReset(@NonNull Loader<Boolean> loader) {
-        // not needed
     }
 
     /**

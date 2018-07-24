@@ -10,14 +10,24 @@ import android.support.annotation.Nullable;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.Toolbar;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.List;
 import io.dev.tanners.bakerhelper.R;
-import io.dev.tanners.bakerhelper.RecipeHelper;
+import io.dev.tanners.bakerhelper.RecipeBase;
 import io.dev.tanners.bakerhelper.aac.db.ListIngredientConverter;
 import io.dev.tanners.bakerhelper.aac.db.RecipeDatabase;
 import io.dev.tanners.bakerhelper.model.Recipe;
 import io.dev.tanners.bakerhelper.network.GenericLoader;
+import io.dev.tanners.bakerhelper.network.NetworkCall;
+import io.dev.tanners.bakerhelper.network.NetworkConfig;
 import io.dev.tanners.bakerhelper.widget.config.GlobalConfig;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 /*
     As per docs,
@@ -41,9 +51,8 @@ import io.dev.tanners.bakerhelper.widget.config.GlobalConfig;
     5) after db is populated, use existing list of data (data is in db but no need to call if same data already is in memory)
     6) set views
  */
-public class RecipeWidgetConfigure extends RecipeHelper {
+public class RecipeWidgetConfigure extends RecipeBase {
     private int mWidgetId;
-    private List<Recipe> mRecipes;
     private static final int WIDGET_RECIPE_LOADER_NETWORK = 987654321;
     private static final int WIDGET_RECIPE_LOADER_DB = -987654321;
     public static final String PENDING_INTENT_RECIPE_EXTRA = "PENDING_INTENT_RECIPE_EXTRA";
@@ -228,7 +237,6 @@ public class RecipeWidgetConfigure extends RecipeHelper {
     /**
      * Run after network call
      */
-    @Override
     protected void onPostRequest()
     {
         // load loader but this time do db add
@@ -316,5 +324,45 @@ public class RecipeWidgetConfigure extends RecipeHelper {
         mToolbar.setTitle(getString(R.string.widget_toolbar_text));
         setSupportActionBar(mToolbar);
     }
+
+    /**
+     * Get data from network
+     * widget calls this, since this type of functionality is handled
+     * in the main activities, viewmodel
+     */
+    protected void getNetworkData()
+    {
+        ObjectMapper mMapper = new ObjectMapper();
+        // set up network api connection with json maooer
+        Retrofit mRetrofit = new Retrofit.Builder()
+                .baseUrl(NetworkConfig.BASE_URL)
+                .addConverterFactory(JacksonConverterFactory.create(mMapper))
+                .build();
+
+        NetworkCall mNetworkCall = mRetrofit.create(NetworkCall.class);
+        // enqueue callback on data call
+        mNetworkCall.getRecipes().enqueue(new Callback<List<Recipe>>() {
+
+            @Override
+            public void onResponse(Call<List<Recipe>> call, Response<List<Recipe>> response) {
+                if (response.isSuccessful()) {
+                    // set object if data
+                    mRecipes = response.body();
+                    // run callback after connection
+//                    onPostRequest();
+                } else {
+                    // display error
+                    displayMessage(findViewById(R.id.main_container), R.string.problem_with_data);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Recipe>> call, Throwable t) {
+                // display error
+                displayMessage(findViewById(R.id.main_container), R.string.failure_to_download_data);
+            }
+        });
+    }
+
 }
 

@@ -3,14 +3,21 @@ package io.dev.tanners.bakerhelper.aac;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.support.annotation.NonNull;
+import android.util.Log;
+
 import java.io.IOException;
 import java.util.List;
+
+import io.dev.tanners.bakerhelper.aac.db.RecipeDatabase;
 import io.dev.tanners.bakerhelper.model.Recipe;
 
 public class MainViewModel extends AndroidViewModel {
     // list of recipes
-    private LiveData<List<Recipe>> mRecipes;
+    private MutableLiveData<List<Recipe>> mRecipes;
+//    private Application application;
+    private RecipeRepository mRecipeRepository;
 
     /**
      * constructor
@@ -20,13 +27,13 @@ public class MainViewModel extends AndroidViewModel {
      */
     public MainViewModel(@NonNull Application application, RecipeRepository mRecipeRepository) {
         super(application);
-
-        try {
-            // use repo to get data
-            mRecipes = mRecipeRepository.getAllRecipes();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        this.application = application;
+        this.mRecipeRepository = mRecipeRepository;
+        // pull new data on each viewmodel init
+        // this SHOULD be one network call per app start
+        // well rest is cached here
+        this.mRecipeRepository.pullNewData();
+        Log.i("VIEWMODEL", "CONSTRUCTOR");
     }
 
     /**
@@ -34,8 +41,15 @@ public class MainViewModel extends AndroidViewModel {
      *
      * @return
      */
-    public LiveData<List<Recipe>> getmRecipes() {
-        return mRecipes;
+    public LiveData<List<Recipe>> getmRecipes() throws IOException {
+        Log.i("VIEWMODEL", "GET DATA");
+        return mRecipeRepository.getRecipes();
     }
+
+//    public void pullNewData()
+//    {
+//        mRecipeRepository.pullNewData();
+//        mRecipes
+//    }
 }
 
