@@ -9,18 +9,14 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.support.test.espresso.IdlingResource;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import java.io.IOException;
 import java.util.List;
 import io.dev.tanners.bakerhelper.aac.MainViewModel;
 import io.dev.tanners.bakerhelper.aac.MainViewModelFactory;
-import io.dev.tanners.bakerhelper.aac.db.RecipeDatabase;
 import io.dev.tanners.bakerhelper.aac.RecipeRepository;
 import io.dev.tanners.bakerhelper.model.Recipe;
-import io.dev.tanners.bakerhelper.network.GenericLoader;
 import io.dev.tanners.bakerhelper.test.IdlingResourceHelper;
 
 /**

@@ -51,7 +51,7 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
 
         int mWidth = mOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH);
 
-        return (mWidth < 200);
+        return (mWidth < 250);
     }
 
     /**

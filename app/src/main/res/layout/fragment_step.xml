@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
+    android:id="@+id/fragment_step_scrollview"
+    android:tag="step_frag"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -28,6 +30,7 @@
             app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
         <include
+            android:id="@+id/fragment_step_partial_body"
             layout="@layout/fragment_step_partial_body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

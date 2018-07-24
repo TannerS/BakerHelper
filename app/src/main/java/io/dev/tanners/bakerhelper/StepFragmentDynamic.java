@@ -4,6 +4,9 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import io.dev.tanners.bakerhelper.model.Step;
 
+/**
+ * steps class for dynamic fragments
+ */
 public class StepFragmentDynamic extends StepFragmentBase  {
     /**
      *

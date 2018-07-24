@@ -7,6 +7,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import io.dev.tanners.bakerhelper.model.Step;
 
+/**
+ * steps class for static fragments
+ */
 public class StepFragment extends StepFragmentBase {
     // this is used for static fragment implementation
     // other methods are used for dynamic

@@ -3,17 +3,21 @@ package io.dev.tanners.bakerhelper;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
@@ -34,6 +38,9 @@ import com.google.android.exoplayer2.util.Util;
 import io.dev.tanners.bakerhelper.model.Step;
 import io.dev.tanners.bakerhelper.util.ImageDisplay;
 
+/**
+ * Base class for the steps
+ */
 public abstract class StepFragmentBase extends Fragment implements View.OnClickListener, ExoPlayer.EventListener  {
     protected Step mStep;
     protected View mView;
@@ -43,8 +50,10 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
     protected SimpleExoPlayerView mPlayerView;
     protected String userAgent;
     public static final String DYNAMIC_STEP_DATA = "DYNAMIC_STEP_DATA";
+    public static final String EXOPLAYER_CURRENT_POS = "EXO_POS";
     protected MediaSessionCompat mMediaSession;
     protected PlaybackStateCompat.Builder mStateBuilder;
+    private long mExoPos;
 
     /**
      *
@@ -56,11 +65,19 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
     /**
      * set up ui resources
      */
-    private void setResources()
+    private void setText()
+    {
+        TextView mDesc = mView.findViewById(R.id.recipe_step_desc);
+        // set description
+        mDesc.setText(mStep.getDescription());
+    }
+
+    /**
+     * set up the image
+     */
+    private void setImage()
     {
         ImageView mThumbnail = mView.findViewById(R.id.recipe_step_thumbnail);
-        TextView mDesc = mView.findViewById(R.id.recipe_step_desc);
-        mPlayerView = mView.findViewById(R.id.recipe_step_video);
         // set up image
         if (!mStep.getThumbnailUrl().isEmpty() && checkForProperImageType(getMimeExtType(mStep.getThumbnailUrl()))) {
             ImageDisplay.loadImage(
@@ -70,25 +87,31 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
                     mStep.getThumbnailUrl(),
                     mThumbnail
             );
-        // no image hid it
+            // no image hid it
         } else {
             // no image, so hide it!
             mThumbnail.setVisibility(View.GONE);
         }
+    }
+
+    /**
+     * set up the video player
+     */
+    private void setVideo()
+    {
+        mPlayerView = mView.findViewById(R.id.recipe_step_video);
         // check for video
         if (checkForProperMediaType(getMimeExtType(mStep.getVideoUrl()))) {
             Uri mUri = Uri.parse((mStep.getVideoUrl()));
             setUpMediaSession();
             initializePlayer(mUri);
-        // is none, hide it
+            // is none, hide it
         } else {
             ConstraintLayout mRecipeStepVideoContainer = mView.findViewById(R.id.fragment_step_partial_header);
             if(mRecipeStepVideoContainer != null)
                 // no video, so hide it!
                 mRecipeStepVideoContainer.setVisibility(View.GONE);
         }
-        // set description
-        mDesc.setText(mStep.getDescription());
     }
 
     /**
@@ -167,13 +190,16 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
     }
 
     /**
+     * set fragment resources and UI
+     *
      * @param savedInstanceState
      */
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         // set ui resources
-        setResources();
+        setText();
+        setImage();
     }
 
     /**
@@ -187,13 +213,51 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
     }
 
     /**
-     *
+     * well be used to release player
      */
     @Override
-    public void onDetach() {
-        super.onDetach();
+    public void onPause() {
+        super.onPause();
         // release audio player
         releasePlayer();
+    }
+
+
+    /**
+     * logic for the exo player
+     */
+    @Override
+    public void onResume() {
+        super.onResume();
+        // start player back up
+        setVideo();
+    }
+
+    /**
+     * used to store the exo player pos before it gets init in onResume
+     *
+     * @param savedInstanceState
+     */
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        // source: https://stackoverflow.com/questions/45481775/exoplayer-restore-state-when-resumed
+        if (savedInstanceState != null) {
+            mExoPos = savedInstanceState.getLong(EXOPLAYER_CURRENT_POS, C.TIME_UNSET);
+        }
+    }
+
+    /**
+     * well be used to save state of video pos
+     *
+     * @param outState
+     */
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        // save player pos
+        outState.putLong(EXOPLAYER_CURRENT_POS, mExoPos);
+
+        super.onSaveInstanceState(outState);
     }
 
     /**
@@ -227,7 +291,9 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
             // set up exo player
             mExoPlayer.prepare(mediaSource);
             // disable auto play
-            mExoPlayer.setPlayWhenReady(false);
+            mExoPlayer.setPlayWhenReady(true);
+            // go to pos if there
+            mExoPlayer.seekTo(mExoPos);
         }
     }
 
@@ -261,14 +327,16 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
     }
 
     /**
-     * Release ExoPlayer.
+     * release ExoPlayer.
      */
     private void releasePlayer() {
         if(mExoPlayer != null)
         {
             // stop and release player
             mExoPlayer.stop();
+            mExoPos = mExoPlayer.getCurrentPosition();
             mExoPlayer.release();
+            mExoPlayer = null;
         }
     }
 
@@ -307,11 +375,10 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
     }
 
     /**
-     * Method that is called when the ExoPlayer state changes. Used to update the MediaSession
-     * PlayBackState to keep in sync.
+     * Method that is called when the ExoPlayer state changes.
+     *
      * @param playWhenReady true if ExoPlayer is playing, false if it's paused.
-     * @param playbackState int describing the state of ExoPlayer. Can be STATE_READY, STATE_IDLE,
-     *                      STATE_BUFFERING, or STATE_ENDED.
+     * @param playbackState
      */
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {

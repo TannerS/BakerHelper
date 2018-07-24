@@ -44,7 +44,7 @@
             android:id="@+id/recipe_steps"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="3dp"
+
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/recipe_ingredients_container"

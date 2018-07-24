@@ -3,14 +3,9 @@ package io.dev.tanners.bakerhelper.aac;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
-import android.util.Log;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.util.List;
-
-import io.dev.tanners.bakerhelper.R;
 import io.dev.tanners.bakerhelper.aac.db.RecipeDatabase;
 import io.dev.tanners.bakerhelper.aac.db.RecipeExecutor;
 import io.dev.tanners.bakerhelper.model.Recipe;
@@ -47,48 +42,11 @@ public class RecipeRepository {
         return sInstance;
     }
 
-//    /**
-//     * get all recipes
-//     *
-//     * @return
-//     * @throws IOException
-//     */
-//    public LiveData<List<Recipe>> getAllRecipes() throws IOException {
-//        // live data of the lst
-//        mData = new MutableLiveData<List<Recipe>>();
-//        // db reference
-//        final RecipeDatabase mDb = RecipeDatabase.getInstance(mContext);
-//
-//        mData.setValue(mDb.getRecipeDao().loadAllRecipes());
-//
-//        return mData;
-//
-//
-//
-//
-//
-//        // call to get data async from the db
-////        RecipeExecutor.getInstance().mDiskIO().execute(new Runnable() {
-////            @Override
-////            public void run() {
-////                // postValue to fix a error
-////                // https://stackoverflow.com/a/44293595/2449314
-////                mData.postValue(mDb.getRecipeDao().loadAllRecipes());
-////            }
-////        });
-//
-//        // data will be empty on return but live data will update it when it comes
-//        // if the class calling this method uses the live data's
-//        // observer onChange method
-////        return mData;
-//    }
-
     /**
      * Get data from network
      */
     public void pullNewData()
     {
-        Log.i("VIEWMODEL", "PULLING NEW DATA");
         ObjectMapper mMapper = new ObjectMapper();
         // set up network api connection with json maooer
         Retrofit mRetrofit = new Retrofit.Builder()
@@ -131,8 +89,6 @@ public class RecipeRepository {
                 }
         );
     }
-
-
 
     /**
      * get all recipes
