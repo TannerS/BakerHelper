@@ -16,7 +16,6 @@ import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -51,9 +50,11 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
     protected String userAgent;
     public static final String DYNAMIC_STEP_DATA = "DYNAMIC_STEP_DATA";
     public static final String EXOPLAYER_CURRENT_POS = "EXO_POS";
+    public static final String EXOPLAYER_CURRENT_STATE = "EXO_STATE";
     protected MediaSessionCompat mMediaSession;
     protected PlaybackStateCompat.Builder mStateBuilder;
     private long mExoPos;
+    private boolean mExoState;
 
     /**
      *
@@ -213,15 +214,42 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
     }
 
     /**
-     * well be used to release player
+     * well be used to release player for sdk 24 and higher
+     */
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (Util.SDK_INT > 23) {
+            // release player
+            releasePlayer();
+        }
+    }
+
+    /**
+     * well be used to release player for sdk 23 and lower
      */
     @Override
     public void onPause() {
         super.onPause();
-        // release audio player
-        releasePlayer();
+        if (Util.SDK_INT <= 23) {
+            // release audio player
+            releasePlayer();
+        }
+
+        mExoPos = mExoPlayer.getCurrentPosition();
+        mExoState = mExoPlayer.getPlayWhenReady();
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (Util.SDK_INT > 23) {
+            // initialize audio player
+            setVideo();
+        }
+
+
+    }
 
     /**
      * logic for the exo player
@@ -229,8 +257,11 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
     @Override
     public void onResume() {
         super.onResume();
-        // start player back up
-        setVideo();
+        super.onResume();
+        if (Util.SDK_INT <= 23 || mExoPlayer == null) {
+            // initialize player
+            setVideo();
+        }
     }
 
     /**
@@ -244,6 +275,7 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
         // source: https://stackoverflow.com/questions/45481775/exoplayer-restore-state-when-resumed
         if (savedInstanceState != null) {
             mExoPos = savedInstanceState.getLong(EXOPLAYER_CURRENT_POS, C.TIME_UNSET);
+            mExoState = savedInstanceState.getBoolean(EXOPLAYER_CURRENT_STATE);
         }
     }
 
@@ -254,10 +286,10 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
      */
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
         // save player pos
         outState.putLong(EXOPLAYER_CURRENT_POS, mExoPos);
-
-        super.onSaveInstanceState(outState);
+        outState.putBoolean(EXOPLAYER_CURRENT_STATE, mExoState);
     }
 
     /**
@@ -291,7 +323,7 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
             // set up exo player
             mExoPlayer.prepare(mediaSource);
             // disable auto play
-            mExoPlayer.setPlayWhenReady(true);
+            mExoPlayer.setPlayWhenReady(mExoState);
             // go to pos if there
             mExoPlayer.seekTo(mExoPos);
         }
@@ -334,7 +366,6 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
         {
             // stop and release player
             mExoPlayer.stop();
-            mExoPos = mExoPlayer.getCurrentPosition();
             mExoPlayer.release();
             mExoPlayer = null;
         }

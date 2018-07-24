@@ -29,6 +29,8 @@
             android:id="@+id/recipe_step_video"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            app:fastforward_increment="1000"
+            app:rewind_increment="1000"
             app:resize_mode="fit">
 
         </com.google.android.exoplayer2.ui.SimpleExoPlayerView>
