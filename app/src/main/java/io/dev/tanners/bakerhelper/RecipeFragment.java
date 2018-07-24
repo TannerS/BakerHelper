@@ -431,7 +431,7 @@ public class RecipeFragment extends Fragment implements LoaderManager.LoaderCall
         @NonNull
         @Override
         public StepViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recipe_step_header, parent, false);
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recipe_step_item, parent, false);
 
             return new StepViewHolder(view);
         }

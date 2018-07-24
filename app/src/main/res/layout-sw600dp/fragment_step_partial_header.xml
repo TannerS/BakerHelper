@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    android:id="@+id/fragment_step_header"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/recipe_step_video_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000000"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="parent">
+
+        <!--https://stackoverflow.com/questions/17587476/videoview-flickering-issue-->
+        <SurfaceView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <!--well surface view fixes a flickering bug,-->
+        <!--adding a different resize_mode breaks the fix-->
+        <!--so it is left as fit so controls are longer then video-->
+        <com.google.android.exoplayer2.ui.SimpleExoPlayerView
+            android:id="@+id/recipe_step_video"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:resize_mode="fit">
+
+        </com.google.android.exoplayer2.ui.SimpleExoPlayerView>
+
+    </FrameLayout>
+
+</android.support.constraint.ConstraintLayout>

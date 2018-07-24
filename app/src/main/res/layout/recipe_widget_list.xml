@@ -1,24 +1,28 @@
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_circle" >
+
+    <TextView
+        android:id="@+id/widget_gridview_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/_12sdp"
+        android:layout_gravity="center"
+        android:textColor="@color/colorPrimaryDark"
+        android:gravity="center"
+        android:textStyle="bold"
+        android:paddingBottom="10dp" />
 
     <GridView
         android:id="@+id/widget_gridview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:padding="@dimen/widget_margin"
-        android:numColumns="1"
-        android:background="@drawable/widget_circle"
-        />
+        android:numColumns="1" />
 
-    <TextView
-        android:id="@+id/empty_gridview_text"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="@string/no_ingredient"/>
-
-</RelativeLayout>
+</LinearLayout>
 
 

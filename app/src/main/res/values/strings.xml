@@ -8,4 +8,7 @@
     <string name="widget_data_network_loading_error">Error loading data</string>
     <string name="widget_toolbar_text">Widget Configuration</string>
     <string name="no_ingredient">NO INGREDIENT</string>
+    <string name="ingredients">Ingredients</string>
+    <string name="steps">Steps</string>
+    <string name="please_select_a_step">Please select a step!</string>
 </resources>

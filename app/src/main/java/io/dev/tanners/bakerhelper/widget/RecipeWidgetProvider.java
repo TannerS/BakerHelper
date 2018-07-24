@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.RemoteViews;
 import io.dev.tanners.bakerhelper.R;
 import io.dev.tanners.bakerhelper.RecipeActivity;
@@ -64,17 +65,23 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
     private static RemoteViews getListViewLayout(Context mContext, int appWidgetId)
     {
         // Construct the RemoteViews object
-        // this will have all the views for the layut
         RemoteViews mRemoteViews = new RemoteViews(mContext.getPackageName(), R.layout.recipe_widget_list);
         // intent for our grid view service to act as the adapter
         Intent intent = new Intent(mContext, WidgetListService.class);
         // pass in widget id
         // source: https://stackoverflow.com/questions/11350287/ongetviewfactory-only-called-once-for-multiple-widgets
         intent.setData(Uri.fromParts("", String.valueOf(appWidgetId), null));
+        // get shared preferences
+        SharedPreferences mSharedPreferences = mContext.getSharedPreferences(GlobalConfig.getWidgetSharedPreferenceKey(appWidgetId), MODE_PRIVATE);
+        // get recipe name
+        String mRecipeName = mSharedPreferences.getString(
+                GlobalConfig.getWidgetSharedPreferenceNameKey(appWidgetId),
+                "INVALID"
+        );
+        // load recipe title
+        mRemoteViews.setTextViewText(R.id.widget_gridview_title, mRecipeName);
         // set adapter
         mRemoteViews.setRemoteAdapter(R.id.widget_gridview, intent);
-        // place holder for empty spaces
-        mRemoteViews.setEmptyView(R.id.widget_gridview, R.id.empty_gridview_text);
         // return views
         return mRemoteViews;
     }
@@ -89,7 +96,6 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
     private static RemoteViews getSingleViewLayout(Context mContext, int appWidgetId)
     {
         // Construct the RemoteViews object
-        // this will have all the views for the layout
         RemoteViews mRemoteViews = new RemoteViews(mContext.getPackageName(), R.layout.recipe_widget);
         // get shared preferences
         SharedPreferences mSharedPreferences = mContext.getSharedPreferences(GlobalConfig.getWidgetSharedPreferenceKey(appWidgetId), MODE_PRIVATE);

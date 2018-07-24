@@ -3,6 +3,7 @@ package io.dev.tanners.bakerhelper.widget;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 import java.util.List;
@@ -21,6 +22,7 @@ public class WidgetListFactory implements RemoteViewsService.RemoteViewsFactory 
     private List<Ingredient> mIngredients = null;
     private int mWidgetId;
     private Context mContext;
+    private String mRecipeName;
 
     /**
      * @param applicationContext
@@ -42,6 +44,11 @@ public class WidgetListFactory implements RemoteViewsService.RemoteViewsFactory 
         String mIngredentStr = mSharedPreferences.getString(
             GlobalConfig.getWidgetSharedPreferenceIngredientKey(mWidgetId),
             "INVALID"
+        );
+        // get recipe name
+        mRecipeName = mSharedPreferences.getString(
+                GlobalConfig.getWidgetSharedPreferenceNameKey(mWidgetId),
+                "INVALID"
         );
         // convert json string back to list object
         try {
