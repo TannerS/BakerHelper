@@ -76,6 +76,8 @@ public class StepFragment extends StepFragmentBase {
         // set short description as ui element
         mToolbar.setTitle(mStep.getShortDescription());
         ((AppCompatActivity)getActivity()).setSupportActionBar(mToolbar);
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
     }
 
     /**

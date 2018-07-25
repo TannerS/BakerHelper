@@ -236,8 +236,10 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
             releasePlayer();
         }
 
-        mExoPos = mExoPlayer.getCurrentPosition();
-        mExoState = mExoPlayer.getPlayWhenReady();
+        if(mExoPlayer != null) {
+            mExoPos = mExoPlayer.getCurrentPosition();
+            mExoState = mExoPlayer.getPlayWhenReady();
+        }
     }
 
     @Override
@@ -256,7 +258,6 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
      */
     @Override
     public void onResume() {
-        super.onResume();
         super.onResume();
         if (Util.SDK_INT <= 23 || mExoPlayer == null) {
             // initialize player
@@ -453,8 +454,10 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
          */
        @Override
        public void onPlay() {
-           // set media session to play
-           mExoPlayer.setPlayWhenReady(true);
+           if(mExoPlayer != null) {
+               // set media session to play
+               mExoPlayer.setPlayWhenReady(true);
+           }
        }
 
         /**
@@ -462,8 +465,10 @@ public abstract class StepFragmentBase extends Fragment implements View.OnClickL
          */
        @Override
        public void onPause() {
-           // pause session
-           mExoPlayer.setPlayWhenReady(false);
+           if(mExoPlayer != null) {
+               // pause session
+               mExoPlayer.setPlayWhenReady(false);
+           }
        }
 
         /**

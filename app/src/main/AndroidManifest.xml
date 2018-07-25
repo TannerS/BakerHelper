@@ -31,6 +31,7 @@
             android:launchMode="singleTask" />
         <activity
             android:name=".StepActivity"
+            android:parentActivityName=".RecipeActivity"
             android:launchMode="singleInstance" />
 
         <receiver android:name=".widget.RecipeWidgetProvider">
